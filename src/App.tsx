@@ -1,5 +1,5 @@
 // src/App.tsx
-import BattleScreen from './BattleScreen';
+import BattleScreen from './components/BattleScreen';
 
 function App() {
   return <BattleScreen />;
