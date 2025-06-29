@@ -1,0 +1,65 @@
+/* フェードアウトアニメーション */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1); /* Y軸のずれを修正 */
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -150%) scale(1.2); /* 少し上に消えるように調整 */
+  }
+}
+
+.animate-fadeOut {
+  animation: fadeOut 1s ease-out forwards;
+}
+
+/* 画面揺れアニメーション */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* --- ここから下がタイマー関連の正しいCSSです --- */
+
+.timer-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid #ef4444; /* Tailwindのred-500の色 */
+  opacity: 0.5;
+  /* 親要素(問題の箱)より40px大きくする */
+  width: calc(100% + 40px);
+  height: calc(100% + 40px);
+}
+
+.timer-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  /* ★ グラデーションの指定を、よりハッキリ見えるように変更します */
+  background: radial-gradient(circle, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0.8) 70%, rgba(255, 255, 255, 0) 90%);
+  /* アニメーション関連のプロパティはここには書きません */
+}
+
+@keyframes timer-scale-up {
+  from {
+    width: 0%;
+    height: 0%;
+    opacity: 1;
+  }
+  to {
+    width: calc(100% + 40px);
+    height: calc(100% + 40px);
+    opacity: 1;
+  }
+}
