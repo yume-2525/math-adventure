@@ -1,5 +1,3 @@
-import type { StageConfig } from '../types';
-
 // 保存するスコアのデータ型
 export interface ScoreData {
   bestScore: number;
