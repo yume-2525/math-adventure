@@ -36,8 +36,8 @@
   border: 2px solid #ef4444; /* Tailwindのred-500の色 */
   opacity: 0.5;
   /* 親要素(問題の箱)より40px大きくする */
-  width: calc(100% + 40px);
-  height: calc(100% + 40px);
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
 }
 
 .timer-circle {
@@ -58,8 +58,8 @@
     opacity: 1;
   }
   to {
-    width: calc(100% + 40px);
-    height: calc(100% + 40px);
+    width: calc(100% + 10px);
+    height: calc(100% + 10px);
     opacity: 1;
   }
 }
