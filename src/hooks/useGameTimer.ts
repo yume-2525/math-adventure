@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface UseGameTimerProps {
   totalTime: number; // 合計時間 (ミリ秒)
