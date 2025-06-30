@@ -37,11 +37,12 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
         setFeedback("wrong");
         setFeedbackPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
     
-        const damageAmount = stageConfig.damageOnMiss;
+        const damageAmount = stageConfig.damageOnMiss; 
         setPlayerHP((prev) => Math.max(0, prev - damageAmount)); 
     
         if (currentProblem) { 
-            setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: false, timeTaken: totalTime }]);
+            // ★★★ ここに userInput: currentAnswer を追加 ★★★
+            setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: false, timeTaken: totalTime, userInput: currentAnswer }]);
         }
     
         setIsTimerActive(false); 
@@ -52,7 +53,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
             setIsShaking(false); 
         }, 1000); 
 
-    }, [currentProblem, totalTime, stageConfig.damageOnMiss]);
+    }, [currentProblem, totalTime, stageConfig.damageOnMiss, currentAnswer]); // ★ currentAnswerを依存配列に追加
 
     useGameTimer({
         totalTime,
@@ -67,7 +68,6 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
         return; 
       }
       const newProblem = generateProblem(stageConfig.problemOptions);
-
       setCurrentProblem(newProblem); 
       setCurrentAnswer(""); 
       problemStartTimeRef.current = Date.now();
@@ -104,7 +104,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
             const totalDamage = (1 + bonusDamage) * 100;
 
             setEnemyHP((prev) => Math.max(0, prev - totalDamage));
-            setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: true, timeTaken }]);
+            setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: true, timeTaken, userInput: currentAnswer }]);
             
             setCurrentProblem(null); 
 
@@ -116,7 +116,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
 
             const damageAmount = stageConfig.damageOnMiss;
             setPlayerHP((prev) => Math.max(0, prev - damageAmount));
-            setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: false, timeTaken }]);
+            setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: false, timeTaken, userInput: currentAnswer }]);
             
             setCurrentAnswer("");
             
@@ -145,7 +145,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
     const animationDuration = totalTime / 1000;
   
     return (
-        <div className="min-h-screen flex flex-col items-center justify-between bg-blue-50 p-4">
+        <div className="min-h-screen flex flex-col items-center justify-between bg-blue-50 p-4 font-sans">
             <div className="w-full max-w-md">
                 <div className="text-xl font-bold text-gray-700 text-center mb-1">敵のHP</div>
                 <div className="bg-gray-300 h-6 rounded-full overflow-hidden border-2 border-gray-400">
