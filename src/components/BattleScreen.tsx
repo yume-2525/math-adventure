@@ -192,7 +192,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                     <img 
                         src={stageConfig.enemyImage} 
                         alt="敵キャラクター" 
-                        className="w-full h-full object-contain opacity-40" // ★★★ 透明度を調整 ★★★
+                        className="w-full h-full object-contain opacity-75" // ★★★ 透明度を調整 ★★★
                     />
                 </div>
                 <div className={`absolute inset-0 ${shakeTarget === 'player' ? 'animate-shake' : ''}`}>

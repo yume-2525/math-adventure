@@ -21,12 +21,12 @@ import {
 
 const areas = [
   { id: 'area1', name: 'はじまりの草原', stages: [
-      { id: 1, name: 'ステージ1：かんたんなたしざん', enemyImage: '/images/dino_stage1.png', enemyHP: 500, totalTime: 10000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+'] as const, }, damageOnMiss: 25, },
-      { id: 2, name: 'ステージ2：たしざんとひきざん', enemyImage: '/images/dino_stage2.png', enemyHP: 800, totalTime: 8000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+', '-'] as const, }, damageOnMiss: 50, },
+      { id: 1, name: 'ステージ1：かんたんなたしざん', enemyImage: '/images/stage1-1.png', enemyHP: 500, totalTime: 10000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+'] as const, }, damageOnMiss: 25, },
+      { id: 2, name: 'ステージ2：たしざんとひきざん', enemyImage: '/images/stage1-1.png', enemyHP: 800, totalTime: 8000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+', '-'] as const, }, damageOnMiss: 50, },
   ]},
   { id: 'area2', name: 'しんぴの森', stages: [
-      { id: 3, name: 'ステージ3：むずかしいバトル', enemyImage: '/images/dino_stage3.png', enemyHP: 1200, totalTime: 6000, problemOptions: { digits1: 2, digits2: 1, allowedOperators: ['+', '-', '×'] as const, }, damageOnMiss: 75, },
-      { id: 4, name: 'ステージ4：九九のれんしゅう！', enemyImage: '/images/dino_stage4.png', enemyHP: 1000, totalTime: 7000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['×'] as const, }, damageOnMiss: 60, },
+      { id: 3, name: 'ステージ3：むずかしいバトル', enemyImage: '/images/stage1-1.png', enemyHP: 1200, totalTime: 6000, problemOptions: { digits1: 2, digits2: 1, allowedOperators: ['+', '-', '×'] as const, }, damageOnMiss: 75, },
+      { id: 4, name: 'ステージ4：九九のれんしゅう！', enemyImage: '/images/stage1-1.png', enemyHP: 1000, totalTime: 7000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['×'] as const, }, damageOnMiss: 60, },
   ]},
 ];
 
