@@ -63,3 +63,19 @@
     opacity: 1;
   }
 }
+
+
+@keyframes floatUpAndFade {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-60px); /* 60px上に移動しながら消える */
+  }
+}
+
+.animate-damage-float {
+  animation: floatUpAndFade 1.5s ease-out forwards;
+}

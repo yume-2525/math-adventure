@@ -15,6 +15,7 @@ export interface BattleLogEntry {
 export interface StageConfig {
   id: number;
   name: string;
+  enemyImage: string;
   enemyHP: number;
   totalTime: number;
   problemOptions: {

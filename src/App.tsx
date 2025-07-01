@@ -7,10 +7,10 @@ import type { StageConfig, BattleLogEntry, ScoreData } from './types';
 import { loadScores, saveScore } from './utils/scoreStorage';
 
 const stages: StageConfig[] = [
-  { id: 1, name: 'ステージ1：かんたんなたしざん', enemyHP: 500, totalTime: 10000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+'], }, damageOnMiss: 25, },
-  { id: 2, name: 'ステージ2：たしざんとひきざん', enemyHP: 800, totalTime: 8000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+', '-'], }, damageOnMiss: 50, },
-  { id: 3, name: 'ステージ3：むずかしいバトル', enemyHP: 1200, totalTime: 6000, problemOptions: { digits1: 2, digits2: 1, allowedOperators: ['+', '-', '×'], }, damageOnMiss: 75, },
-  { id: 4, name: 'ステージ4：九九のれんしゅう！', enemyHP: 1000, totalTime: 7000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['×'], }, damageOnMiss: 60, },
+  { id: 1, name: 'ステージ1：かんたんなたしざん',enemyImage: '/images/stage1-1.png', enemyHP: 500, totalTime: 10000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+'], }, damageOnMiss: 25, },
+  { id: 2, name: 'ステージ2：たしざんとひきざん',enemyImage: '/images/stage1-1.png', enemyHP: 800, totalTime: 8000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+', '-'], }, damageOnMiss: 50, },
+  { id: 3, name: 'ステージ3：むずかしいバトル',enemyImage: '/images/stage1-1.png', enemyHP: 1200, totalTime: 6000, problemOptions: { digits1: 2, digits2: 1, allowedOperators: ['+', '-', '×'], }, damageOnMiss: 75, },
+  { id: 4, name: 'ステージ4：九九のれんしゅう！',enemyImage: '/images/stage1-1.png', enemyHP: 1000, totalTime: 7000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['×'], }, damageOnMiss: 60, },
 ];
 
 function App() {
