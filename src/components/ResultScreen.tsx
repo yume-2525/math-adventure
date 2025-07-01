@@ -1,16 +1,20 @@
 import React from 'react';
 import type { ResultScreenProps } from '../types';
 import { getRankColor } from '../utils/styleHelper';
+import { playClick, } from '../utils/soundManager'; // ★★★ インポートを追加 ★★★
 
 const ResultScreen: React.FC<ResultScreenProps> = ({ isGameClear, battleLog, onGoToSelect, score, rank, bestScore = 0 }) => {
     const totalProblems = battleLog.length;
     const correctAnswers = battleLog.filter(log => log.isCorrect).length;
     const accuracyRate = totalProblems > 0 ? (correctAnswers / totalProblems) * 100 : 0;
-
-    const totalCorrectTime = battleLog
-        .filter(log => log.isCorrect)
-        .reduce((sum, log) => sum + log.timeTaken, 0);
+    const totalCorrectTime = battleLog.filter(log => log.isCorrect).reduce((sum, log) => sum + log.timeTaken, 0);
     const avgCorrectTime = correctAnswers > 0 ? totalCorrectTime / correctAnswers : 0;
+
+    // ★★★ ボタンが押された時の処理をここに定義 ★★★
+    const handleGoToSelectClick = () => {
+        playClick();
+        onGoToSelect(); // App.tsxに画面遷移を依頼
+    };
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4 font-sans">
@@ -45,13 +49,12 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ isGameClear, battleLog, onG
                     </div>
                 </div>
                 <details className="mt-4">
-                    <summary className="cursor-pointer text-center text-blue-500">問題ごとの記録をみる</summary>
-                 <ul className="max-h-48 overflow-y-auto mt-2 p-2 bg-gray-50 rounded space-y-1 text-base">
+                    <summary className="cursor-pointer text-center text-blue-500">すべての回答をみる</summary>
+                    <ul className="max-h-48 overflow-y-auto mt-2 p-2 bg-gray-50 rounded space-y-1 text-base">
                         {battleLog.map((entry, index) => (
                             <li key={index} className="flex items-center justify-between">
                                 <div className={entry.isCorrect ? '' : 'text-red-500'}>
                                     <span className="mr-2">{entry.isCorrect ? '⭕️' : '❌'}</span>
-                                    {/* 不正解の時は、問題と「入力した答え」を表示 */}
                                     {entry.isCorrect 
                                         ? <span>{entry.problem.text} = {entry.problem.answer}</span>
                                         : <span>{entry.problem.text} = {entry.userInput || '?'}</span>
@@ -66,7 +69,8 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ isGameClear, battleLog, onG
                 </details>
             </div>
             <button
-                onClick={onGoToSelect}
+                // ★★★ onClickの処理を新しい関数に変更 ★★★
+                onClick={handleGoToSelectClick}
                 className="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg text-xl"
             >
                 ステージ選択へ

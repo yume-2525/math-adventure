@@ -21,7 +21,8 @@ export interface StageConfig {
   problemOptions: {
     digits1: number;
     digits2: number;
-    allowedOperators: Operator[];
+    // ★★★ allowedOperators の先頭に readonly を追加 ★★★
+    allowedOperators: readonly Operator[];
   };
   damageOnMiss: number;
 }
@@ -33,7 +34,7 @@ export interface ResultScreenProps {
   onGoToSelect: () => void;
   score: number;
   rank: string;
-  bestScore?: number; // ? をつけて、なくても良いpropsだと示す
+  bestScore?: number;
 }
 
 // ScoreDataの型定義

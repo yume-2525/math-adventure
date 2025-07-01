@@ -5,13 +5,14 @@ export type Problem = {
   operand2: number;
   operator: Operator;
   answer: number;
-  text: string; // 例: "7 × 3"
+  text: string;
 };
 
 type ProblemOptions = {
-  digits1: number;     // 第1項の桁数（例：1桁）
-  digits2: number;     // 第2項の桁数
-  allowedOperators: Operator[]; // ["+", "-"] など
+  digits1: number;
+  digits2: number;
+  // ★★★ ここに readonly を追加 ★★★
+  allowedOperators: readonly Operator[];
 };
 
 export function generateProblem(options: ProblemOptions): Problem {
@@ -25,9 +26,8 @@ export function generateProblem(options: ProblemOptions): Problem {
 
   const operator = allowedOperators[Math.floor(Math.random() * allowedOperators.length)];
   
-  // マイナス答えを防ぐため、operatorが「-」なら必ず operand1 >= operand2 にする
   if (operator === "-" && operand1 < operand2) {
-    [operand1, operand2] = [operand2, operand1]; // 入れ替え
+    [operand1, operand2] = [operand2, operand1];
   }
 
   let answer: number;

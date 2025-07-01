@@ -3,6 +3,7 @@ import { generateProblem } from "../utils/generateProblem";
 import type { Problem } from "../utils/generateProblem";
 import type { BattleLogEntry, StageConfig } from '../types';
 import { useGameTimer } from '../hooks/useGameTimer';
+import { playClick, playCorrect, playDamage } from '../utils/soundManager'; // ★★★ 効果音をインポート ★★★
 
 interface DamageFloat {
   id: number;
@@ -39,11 +40,8 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
     const isGameClear = enemyHP <= 0;
 
     const showDamage = (amount: number, target: 'enemy' | 'player') => {
-        const newDamageFloat: DamageFloat = {
-            id: Date.now(),
-            amount,
-            target,
-        };
+        playDamage(); // ★ ダメージ音を再生
+        const newDamageFloat: DamageFloat = { id: Date.now(), amount, target };
         setDamageFloats(prev => [...prev, newDamageFloat]);
         setTimeout(() => {
             setDamageFloats(prev => prev.filter(df => df.id !== newDamageFloat.id));
@@ -66,19 +64,12 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
         setIsTimerActive(false); 
         setCurrentProblem(null); 
         
-        setTimeout(() => {
-            setFeedback(null); 
-        }, 1000); 
+        setTimeout(() => { setFeedback(null) }, 1000); 
         setTimeout(() => setShakeTarget('none'), 500);
 
     }, [currentProblem, totalTime, stageConfig.damageOnMiss, currentAnswer]);
 
-    useGameTimer({
-        totalTime,
-        onTimeout: handleTimeout,
-        shouldStartTimer: isTimerActive,
-        problemStartTimeRef,
-    });
+    useGameTimer({ totalTime, onTimeout: handleTimeout, shouldStartTimer: isTimerActive, problemStartTimeRef });
     
     const startNewProblem = useCallback(() => {
       if (playerHP <= 0 || enemyHP <= 0) {
@@ -102,9 +93,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
         }
 
         if (currentProblem === null && !isGameClear && !isGameOver) {
-             const nextProblemTimer = setTimeout(() => {
-                startNewProblem();
-             }, 300);
+             const nextProblemTimer = setTimeout(() => { startNewProblem() }, 300);
              return () => clearTimeout(nextProblemTimer);
         }
     }, [currentProblem, isGameClear, isGameOver, battleLog, onBattleComplete, startNewProblem]); 
@@ -116,6 +105,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
         setFeedbackPos({ x: e.clientX, y: e.clientY });
 
         if (currentAnswer === currentProblem.answer.toString()) { 
+            playCorrect(); // ★ 正解音を再生
             setIsTimerActive(false);
             setFeedback("correct");
             setShakeTarget('enemy');
@@ -132,7 +122,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
             
             setCurrentProblem(null); 
 
-            setTimeout(() => setFeedback(null), 1000);
+            setTimeout(() => { setFeedback(null) }, 1000);
             setTimeout(() => setShakeTarget('none'), 500);
 
         } else {
@@ -146,14 +136,13 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
             
             setCurrentAnswer("");
             
-            setTimeout(() => {
-                setFeedback(null);
-            }, 1000);
+            setTimeout(() => { setFeedback(null) }, 1000);
             setTimeout(() => setShakeTarget('none'), 500);
         }
     };
     
     const handleInput = (key: string) => {
+        playClick(); // ★ 入力音を再生
         if (key === "⌫") {
             setCurrentAnswer((prev) => prev.slice(0, -1));
         } else if (currentProblem) {
@@ -187,9 +176,8 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
 
             {/* 敵の情報エリア */}
             <div className="w-full max-w-sm">
-                <div className={`flex justify-center mb-2 ${shakeTarget === 'enemy' ? 'animate-shake' : ''}`}>
-                    <img src={stageConfig.enemyImage} alt="敵キャラクター" className="h-28 md:h-32" />
-                </div>
+                {/* ★★★ HPバーの上の画像は削除しました ★★★ */}
+                <div className="text-xl font-bold text-gray-700 text-center mb-1">敵のHP</div>
                 <div className="relative bg-gray-300 h-6 rounded-full overflow-hidden border-2 border-gray-400">
                     <div className="bg-red-600 h-full transition-all duration-300 ease-in-out" style={{ width: `${(enemyHP / maxEnemyHP) * 100}%` }} />
                     <div className="absolute inset-0 flex justify-center items-center text-white font-bold text-sm tracking-wider" style={{textShadow: '1px 1px 2px black'}}>
@@ -203,8 +191,8 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                 <div className={`transition-transform duration-300 ${shakeTarget === 'enemy' ? 'animate-shake' : ''}`}>
                     <img 
                         src={stageConfig.enemyImage} 
-                        alt="" 
-                        className="w-full h-full object-contain opacity-25"
+                        alt="敵キャラクター" 
+                        className="w-full h-full object-contain opacity-40" // ★★★ 透明度を調整 ★★★
                     />
                 </div>
                 <div className={`absolute inset-0 ${shakeTarget === 'player' ? 'animate-shake' : ''}`}>
@@ -226,7 +214,6 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                         {currentProblem && (
                             <span 
                                 className="text-4xl md:text-5xl font-bold text-gray-900 text-center"
-                                // ★★★ 白いフチをtext-shadowで表現 ★★★
                                 style={{ textShadow: '2px 0 #FFF, -2px 0 #FFF, 0 2px #FFF, 0 -2px #FFF, 1px 1px #FFF, -1px -1px #FFF, 1px -1px #FFF, -1px 1px #FFF' }}
                             >
                                 {currentProblem.text}
@@ -236,7 +223,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                 </div>
             </div>
 
-            {/* フィードバック表示 */}
+            {/* ★★★ フィードバック表示を復活・確認 ★★★ */}
             {feedback && feedbackPos && (
                 <div
                     className={`absolute text-4xl md:text-5xl font-extrabold pointer-events-none transition-opacity duration-1000 animate-fadeOut z-40 ${feedback === "correct" ? "text-green-500" : "text-red-500"}`}
@@ -262,7 +249,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
 
             {/* プレイヤーの情報エリア */}
             <div className="w-full max-w-sm">
-                <div className="text-xl font-bold text-blue-700 text-center mb-1">プレイヤーHP</div>
+                 <div className="text-xl font-bold text-blue-700 text-center mb-1">プレイヤーHP</div>
                 <div className="relative bg-gray-300 h-6 rounded-full overflow-hidden border-2 border-gray-400">
                     <div className="bg-green-500 h-full transition-all duration-300 ease-in-out" style={{ width: `${(playerHP / maxPlayerHP) * 100}%` }} />
                     <div className="absolute inset-0 flex justify-center items-center text-white font-bold text-sm tracking-wider" style={{textShadow: '1px 1px 2px black'}}>

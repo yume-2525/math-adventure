@@ -1,15 +1,15 @@
 import React from 'react';
 import type { StageConfig, ScoreData } from '../types';
-import { getRankColor } from '../utils/styleHelper'; // ★★★ 共有ファイルからインポート ★★★
+import { getRankColor } from '../utils/styleHelper';
 
 interface StageSelectScreenProps {
   stages: StageConfig[];
   onStageSelect: (stage: StageConfig) => void;
-  onBackToStart: () => void;
+  onBackToAreaSelect: () => void;
   bestScores: Record<string, ScoreData>;
 }
 
-const StageSelectScreen: React.FC<StageSelectScreenProps> = ({ stages, onStageSelect, onBackToStart, bestScores }) => {
+const StageSelectScreen: React.FC<StageSelectScreenProps> = ({ stages, onStageSelect, onBackToAreaSelect, bestScores }) => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4 font-sans">
       <h1 className="text-4xl font-bold mb-8">ステージを選んでね</h1>
@@ -26,7 +26,6 @@ const StageSelectScreen: React.FC<StageSelectScreenProps> = ({ stages, onStageSe
               {bestRank && (
                 <div className="text-sm font-bold">
                   <span>BEST: </span>
-                  {/* ★★★ getRankColorを使って色を動的に変更 ★★★ */}
                   <span className={`text-lg ${getRankColor(bestRank)}`}>{bestRank}</span>
                 </div>
               )}
@@ -35,10 +34,10 @@ const StageSelectScreen: React.FC<StageSelectScreenProps> = ({ stages, onStageSe
         })}
       </div>
       <button
-        onClick={onBackToStart}
+        onClick={onBackToAreaSelect}
         className="mt-12 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg shadow-md"
       >
-        スタートに戻る
+        エリア選択へ
       </button>
     </div>
   );
