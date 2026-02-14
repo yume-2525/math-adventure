@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { generateProblem } from "../utils/generateProblem";
-import type { Problem } from "../utils/generateProblem";
+import { generateProblem } from "../utils/mathLogic";
+import type { Problem } from "../utils/mathLogic";
 import type { BattleLogEntry, StageConfig } from '../types';
 import { useGameTimer } from '../hooks/useGameTimer';
-import { playClick, playCorrect, playDamage } from '../utils/soundManager'; // ★★★ 効果音をインポート ★★★
+import { playClick, playCorrect, playDamage, playStageClear } from '../utils/soundManager';
+import Lottie from 'lottie-react';
+import victoryAnimationData from '../../public/animations/victory.json';
 
 interface DamageFloat {
   id: number;
@@ -21,17 +23,14 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
     const [enemyHP, setEnemyHP] = useState(stageConfig.enemyHP);
     const maxPlayerHP = 3 * 100;
     const maxEnemyHP = stageConfig.enemyHP;
-
     const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
     const [currentAnswer, setCurrentAnswer] = useState("");
     const [battleLog, setBattleLog] = useState<BattleLogEntry[]>([]);
-    
     const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
     const [feedbackPos, setFeedbackPos] = useState<{ x: number; y: number } | null>(null);
     const [shakeTarget, setShakeTarget] = useState<'none' | 'enemy' | 'player'>('none');
-    
     const [damageFloats, setDamageFloats] = useState<DamageFloat[]>([]);
-
+    const [isVictoryAnimationPlaying, setIsVictoryAnimationPlaying] = useState(false);
     const totalTime = stageConfig.totalTime;
     const problemStartTimeRef = useRef<number>(0); 
     const [isTimerActive, setIsTimerActive] = useState(false); 
@@ -40,7 +39,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
     const isGameClear = enemyHP <= 0;
 
     const showDamage = (amount: number, target: 'enemy' | 'player') => {
-        playDamage(); // ★ ダメージ音を再生
+        playDamage();
         const newDamageFloat: DamageFloat = { id: Date.now(), amount, target };
         setDamageFloats(prev => [...prev, newDamageFloat]);
         setTimeout(() => {
@@ -52,21 +51,16 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
         setShakeTarget('player');
         setFeedback("wrong");
         setFeedbackPos({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-    
         const damageAmount = stageConfig.damageOnMiss; 
         setPlayerHP((prev) => Math.max(0, prev - damageAmount));
         showDamage(damageAmount, 'player');
-    
         if (currentProblem) { 
             setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: false, timeTaken: totalTime, userInput: currentAnswer }]);
         }
-    
         setIsTimerActive(false); 
         setCurrentProblem(null); 
-        
         setTimeout(() => { setFeedback(null) }, 1000); 
         setTimeout(() => setShakeTarget('none'), 500);
-
     }, [currentProblem, totalTime, stageConfig.damageOnMiss, currentAnswer]);
 
     useGameTimer({ totalTime, onTimeout: handleTimeout, shouldStartTimer: isTimerActive, problemStartTimeRef });
@@ -76,73 +70,80 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
         setIsTimerActive(false);
         return; 
       }
-      const newProblem = generateProblem(stageConfig.problemOptions);
+      const newProblem = generateProblem(stageConfig.calculationSettings);
       setCurrentProblem(newProblem); 
       setCurrentAnswer(""); 
       problemStartTimeRef.current = Date.now();
       setIsTimerActive(true); 
+    }, [playerHP, enemyHP, stageConfig.calculationSettings]);
 
-    }, [playerHP, enemyHP, stageConfig.problemOptions]);
+     useEffect(() => {
+        if (isGameClear && !isVictoryAnimationPlaying) {
+            playStageClear(); // ★★★ ここで勝利の効果音を再生 ★★★
+            setIsTimerActive(false);
+            setIsVictoryAnimationPlaying(true);
+            
+            const victoryTimer = setTimeout(() => {
+                onBattleComplete(battleLog, true);
+            }, 3000);
+            
+            return () => clearTimeout(victoryTimer);
+        }
 
-    useEffect(() => {
-        if (isGameClear || isGameOver) {
-            const timer = setTimeout(() => {
-                onBattleComplete(battleLog, isGameClear);
+        if (isGameOver) {
+            const gameOverTimer = setTimeout(() => {
+                onBattleComplete(battleLog, false);
             }, 1500);
-            return () => clearTimeout(timer);
+            return () => clearTimeout(gameOverTimer);
         }
 
         if (currentProblem === null && !isGameClear && !isGameOver) {
              const nextProblemTimer = setTimeout(() => { startNewProblem() }, 300);
              return () => clearTimeout(nextProblemTimer);
         }
-    }, [currentProblem, isGameClear, isGameOver, battleLog, onBattleComplete, startNewProblem]); 
+    }, [isGameClear, isGameOver, currentProblem, battleLog, onBattleComplete, startNewProblem, isVictoryAnimationPlaying]); 
+
 
     const handleCheckAnswer = (e: React.MouseEvent) => {
-        if (currentAnswer === "" || !currentProblem) return;
+        if (currentAnswer === "" || !currentProblem || isVictoryAnimationPlaying) return;
 
         const timeTaken = Date.now() - problemStartTimeRef.current;
         setFeedbackPos({ x: e.clientX, y: e.clientY });
 
         if (currentAnswer === currentProblem.answer.toString()) { 
-            playCorrect(); // ★ 正解音を再生
+            playCorrect();
             setIsTimerActive(false);
             setFeedback("correct");
             setShakeTarget('enemy');
-
             const timeRatio = Math.max(0, (totalTime - timeTaken) / totalTime);
             const minDamage = 50;
             const maxDamage = 250;
             const calculatedDamage = minDamage + (maxDamage - minDamage) * timeRatio;
             const totalDamage = Math.round(calculatedDamage);
-
-            setEnemyHP((prev) => Math.max(0, prev - totalDamage));
+            const nextEnemyHP = enemyHP - totalDamage;
+            setEnemyHP(Math.max(0, nextEnemyHP));
             showDamage(totalDamage, 'enemy');
             setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: true, timeTaken, userInput: currentAnswer }]);
-            
-            setCurrentProblem(null); 
-
+            if (nextEnemyHP > 0) {
+                setCurrentProblem(null);
+            }
             setTimeout(() => { setFeedback(null) }, 1000);
             setTimeout(() => setShakeTarget('none'), 500);
-
         } else {
             setShakeTarget('player');
             setFeedback("wrong");
-
             const damageAmount = stageConfig.damageOnMiss;
             setPlayerHP((prev) => Math.max(0, prev - damageAmount));
             showDamage(damageAmount, 'player');
             setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: false, timeTaken, userInput: currentAnswer }]);
-            
             setCurrentAnswer("");
-            
             setTimeout(() => { setFeedback(null) }, 1000);
             setTimeout(() => setShakeTarget('none'), 500);
         }
     };
     
     const handleInput = (key: string) => {
-        playClick(); // ★ 入力音を再生
+        playClick();
         if (key === "⌫") {
             setCurrentAnswer((prev) => prev.slice(0, -1));
         } else if (currentProblem) {
@@ -156,7 +157,32 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
     const animationDuration = totalTime / 1000;
   
     return (
-        <div className="min-h-screen flex flex-col items-center justify-around bg-blue-50 p-4 font-sans relative overflow-hidden">
+        <div 
+            className="min-h-screen flex flex-col items-center justify-around p-4 font-sans relative overflow-hidden"
+            style={{
+                backgroundImage: `url(${stageConfig.backgroundImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+            }}
+        >
+            {isVictoryAnimationPlaying && (
+                <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center z-50">
+                    <div className="absolute inset-0 pointer-events-none">
+                        <Lottie
+                            animationData={victoryAnimationData}
+                            loop={false}
+                            // ★★★ アニメーションが終わったら画面遷移する ★★★
+                            onComplete={() => onBattleComplete(battleLog, true)}
+                        />
+                    </div>
+                    <span className="text-8xl font-black text-white animate-bounce" style={{ textShadow: '0 0 20px rgba(0,0,0,0.5)' }}>
+                        WIN!!
+                    </span>
+                </div>
+            )}
+
+
             <div className="absolute inset-0 pointer-events-none z-50">
                 {damageFloats.map(df => (
                     <div
@@ -174,9 +200,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                 ))}
             </div>
 
-            {/* 敵の情報エリア */}
             <div className="w-full max-w-sm">
-                {/* ★★★ HPバーの上の画像は削除しました ★★★ */}
                 <div className="text-xl font-bold text-gray-700 text-center mb-1">敵のHP</div>
                 <div className="relative bg-gray-300 h-6 rounded-full overflow-hidden border-2 border-gray-400">
                     <div className="bg-red-600 h-full transition-all duration-300 ease-in-out" style={{ width: `${(enemyHP / maxEnemyHP) * 100}%` }} />
@@ -186,13 +210,12 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                 </div>
             </div>
 
-            {/* 問題エリア */}
             <div className={`relative w-56 h-56 md:w-64 md:h-64 flex items-center justify-center`}>
                 <div className={`transition-transform duration-300 ${shakeTarget === 'enemy' ? 'animate-shake' : ''}`}>
                     <img 
                         src={stageConfig.enemyImage} 
                         alt="敵キャラクター" 
-                        className="w-full h-full object-contain opacity-75" // ★★★ 透明度を調整 ★★★
+                        className="w-full h-full object-contain opacity-60" 
                     />
                 </div>
                 <div className={`absolute inset-0 ${shakeTarget === 'player' ? 'animate-shake' : ''}`}>
@@ -223,7 +246,6 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                 </div>
             </div>
 
-            {/* ★★★ フィードバック表示を復活・確認 ★★★ */}
             {feedback && feedbackPos && (
                 <div
                     className={`absolute text-4xl md:text-5xl font-extrabold pointer-events-none transition-opacity duration-1000 animate-fadeOut z-40 ${feedback === "correct" ? "text-green-500" : "text-red-500"}`}
@@ -233,7 +255,6 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                 </div>
             )}
 
-            {/* 入力エリア */}
             <div className={`w-full max-w-xs ${shakeTarget === 'player' ? 'animate-shake' : ''}`}>
                 <div className="text-4xl md:text-5xl font-mono tracking-widest mb-2 p-2 bg-white rounded-lg shadow-inner min-h-[4rem] text-center">
                     {currentAnswer || <span className="text-gray-400">?</span>}
@@ -247,7 +268,6 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                 </div>
             </div>
 
-            {/* プレイヤーの情報エリア */}
             <div className="w-full max-w-sm">
                  <div className="text-xl font-bold text-blue-700 text-center mb-1">プレイヤーHP</div>
                 <div className="relative bg-gray-300 h-6 rounded-full overflow-hidden border-2 border-gray-400">

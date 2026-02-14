@@ -4,31 +4,14 @@ import AreaSelectScreen from './components/AreaSelectScreen';
 import StageSelectScreen from './components/StageSelectScreen';
 import BattleScreen from './components/BattleScreen';
 import ResultScreen from './components/ResultScreen';
-import type { StageConfig, BattleLogEntry, ScoreData } from './types';
+import type { StageConfig, BattleLogEntry, ScoreData } from './types/game';
+import { areas } from './constants/areas';
 import { loadScores, saveScore } from './utils/scoreStorage';
 import { 
-  playStageClear, 
   playGameOver, 
   playClick, 
-  playStartBgm, // ★ インポート
-  playAreaBgm,
-  playStageSelectBgm,
-  playBattleBgm,
-  playVictoryBgm,
-  playDefeatBgm,
-  stopBgm
+  manageBgm 
 } from './utils/soundManager';
-
-const areas = [
-  { id: 'area1', name: 'はじまりの草原', stages: [
-      { id: 1, name: 'ステージ1：かんたんなたしざん', enemyImage: '/images/stage1-1.png', enemyHP: 500, totalTime: 10000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+'] as const, }, damageOnMiss: 25, },
-      { id: 2, name: 'ステージ2：たしざんとひきざん', enemyImage: '/images/stage1-1.png', enemyHP: 800, totalTime: 8000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['+', '-'] as const, }, damageOnMiss: 50, },
-  ]},
-  { id: 'area2', name: 'しんぴの森', stages: [
-      { id: 3, name: 'ステージ3：むずかしいバトル', enemyImage: '/images/stage1-1.png', enemyHP: 1200, totalTime: 6000, problemOptions: { digits1: 2, digits2: 1, allowedOperators: ['+', '-', '×'] as const, }, damageOnMiss: 75, },
-      { id: 4, name: 'ステージ4：九九のれんしゅう！', enemyImage: '/images/stage1-1.png', enemyHP: 1000, totalTime: 7000, problemOptions: { digits1: 1, digits2: 1, allowedOperators: ['×'] as const, }, damageOnMiss: 60, },
-  ]},
-];
 
 function App() {
   const [screen, setScreen] = useState<'start' | 'area' | 'select' | 'battle' | 'result'>('start');
@@ -39,51 +22,74 @@ function App() {
   const [score, setScore] = useState(0);
   const [rank, setRank] = useState('');
   const [bestScores, setBestScores] = useState<Record<string, ScoreData>>({});
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
     setBestScores(loadScores());
   }, []);
 
+  // ★★★ BGMを管理する、唯一のuseEffect ★★★
+  useEffect(() => {
+    // ユーザーが一度もクリックしていなければ、何もしない
+    if (!hasInteracted) return;
+
+    let bgmSrc: string | null = null;
+
+    switch (screen) {
+      case 'area':
+      case 'select':
+        bgmSrc = '/sounds/エリアステージ選択画面.mp3';
+        break;
+      case 'battle':
+        bgmSrc = '/sounds/恐竜の世界.mp3';
+        break;
+      case 'result':
+        bgmSrc = wasGameClear ? '/sounds/勝利画面.mp3' : '/sounds/敗北画面.mp3';
+        break;
+      case 'start':
+        bgmSrc = null; // nullを渡すとBGMが停止する
+        break;
+    }
+    
+    manageBgm(bgmSrc);
+
+  }, [screen, wasGameClear, hasInteracted]);
+
+
+  // --- これ以降のボタン用関数は、BGMの再生命令を一切行わない ---
+
   const handleStartGame = () => {
     playClick();
-    playAreaBgm();
+    setHasInteracted(true); // 最初の操作を記録
     setScreen('area');
   };
 
   const handleBackToStart = () => {
     playClick();
-    playStartBgm(); // ★ BGMを停止する代わりに、スタート画面のBGMを再生
     setScreen('start');
   };
 
   const handleAreaSelect = (areaId: string) => {
     playClick();
-    playStageSelectBgm();
     setSelectedAreaId(areaId);
     setScreen('select');
   };
   
   const handleBackToAreaSelect = () => {
     playClick();
-    playAreaBgm();
     setScreen('area');
   };
 
   const handleStageSelect = (stage: StageConfig) => {
     playClick();
-    playBattleBgm();
     setSelectedStage(stage);
     setScreen('battle');
   };
 
   const handleBattleComplete = (log: BattleLogEntry[], isClear: boolean) => {
-    stopBgm();
-    if (isClear) {
-      playStageClear();
-      playVictoryBgm();
-    } else {
+    // 勝利・敗北の効果音はBattleScreenに任せる
+    if (!isClear) {
       playGameOver();
-      playDefeatBgm();
     }
     
     if (!selectedStage) return;
@@ -104,7 +110,7 @@ function App() {
     else if (finalScore >= 5000) finalRank = 'B';
     else if (finalScore >= 2500) finalRank = 'C';
 
-    saveScore(selectedStage.id, finalScore, finalRank);
+     saveScore(selectedStage.id, finalScore, finalRank);
     setBestScores(loadScores());
     setLastBattleLog(log);
     setWasGameClear(isClear);
@@ -115,7 +121,6 @@ function App() {
 
   const handleGoToSelect = () => {
     playClick();
-    playStageSelectBgm();
     setScreen('select');
   };
 

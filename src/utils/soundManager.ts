@@ -7,49 +7,40 @@ export const playGameOver = () => { new Audio('/sounds/lose.mp3').play(); };
 
 
 // --- BGM ---
-// ★★★ アプリで使うBGMを、最初にすべて読み込んでおく ★★★
-const bgmFiles = {
-  start: new Audio('/sounds/スタート画面.mp3'),
-  area: new Audio('/sounds/エリア選択画面.mp3'),
-  stageSelect: new Audio('/sounds/ステージ選択画面.mp3'),
-  battle: new Audio('/sounds/恐竜の世界.mp3'),
-  victory: new Audio('/sounds/勝利画面.mp3'),
-  defeat: new Audio('/sounds/敗北画面.mp3'),
-};
-
-// 全てのBGMに共通の設定を適用
-Object.values(bgmFiles).forEach(bgm => {
-  bgm.loop = true;
-  bgm.volume = 0.3;
-});
-
 let currentBgm: HTMLAudioElement | null = null;
+let currentBgmSrc: string | null = null;
 
-// ★★★ BGMを切り替えるための内部関数 ★★★
-const switchBgm = (nextBgm: HTMLAudioElement | null) => {
-  // すでに同じ曲が再生中なら何もしない
-  if (currentBgm === nextBgm) return;
+/**
+ * BGMを管理する唯一の関数。
+ * @param src 再生したい曲のパス。nullを渡すと停止する。
+ */
+export const manageBgm = (src: string | null) => {
+  // 1. 停止命令が来た場合
+  if (!src) {
+    if (currentBgm) {
+      currentBgm.pause();
+      currentBgm = null;
+      currentBgmSrc = null;
+    }
+    return;
+  }
 
-  // 今流れている曲があれば、停止して最初まで巻き戻す
+  // 2. すでに同じ曲が再生中の場合は、何もしない
+  const fullSrc = new URL(src, window.location.href).href;
+  if (currentBgm && currentBgmSrc === fullSrc) {
+    return;
+  }
+
+  // 3. 違う曲が再生中か、何も流れていない場合は、新しい曲を再生
   if (currentBgm) {
     currentBgm.pause();
-    currentBgm.currentTime = 0;
-  }
-
-  // 次の曲を再生
-  if (nextBgm) {
-    nextBgm.play().catch(error => console.error("BGM Playback Error:", error));
   }
   
-  // 現在の曲を更新
-  currentBgm = nextBgm;
+  currentBgm = new Audio(src);
+  currentBgmSrc = fullSrc;
+  currentBgm.loop = true;
+  currentBgm.volume = 0.3;
+  currentBgm.play().catch(error => {
+    console.log("BGMの自動再生がブロックされました。最初のクリック後に再生が開始されます。", error);
+  });
 };
-
-// ★★★ 外部から呼び出すための関数 ★★★
-export const playStartBgm = () => switchBgm(bgmFiles.start);
-export const playAreaBgm = () => switchBgm(bgmFiles.area);
-export const playStageSelectBgm = () => switchBgm(bgmFiles.stageSelect);
-export const playBattleBgm = () => switchBgm(bgmFiles.battle);
-export const playVictoryBgm = () => switchBgm(bgmFiles.victory);
-export const playDefeatBgm = () => switchBgm(bgmFiles.defeat);
-export const stopBgm = () => switchBgm(null); // nullを渡すと停止する
