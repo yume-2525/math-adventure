@@ -15,12 +15,12 @@ const AreaSelectScreen: React.FC<AreaSelectScreenProps> = ({ areas, onAreaSelect
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4 font-sans">
       <h1 className="text-4xl font-bold mb-8">どこへ冒険に行く？</h1>
-      <div className="space-y-4">
+      <div className="space-y-4 flex flex-col items-center">
         {areas.map((area) => (
           <button
             key={area.id}
             onClick={() => onAreaSelect(area.id)}
-            className="w-80 bg-white text-xl font-bold py-4 px-6 rounded-lg shadow-md hover:bg-blue-100 transition-colors"
+            className="w-80 bg-white text-xl font-bold py-4 px-6 rounded-lg shadow-md hover:bg-blue-100 transition-colors text-center"
           >
             {area.name}
           </button>

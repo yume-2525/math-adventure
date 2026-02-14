@@ -124,6 +124,11 @@ function App() {
     setScreen('select');
   };
 
+  const handleBattleGiveUp = () => {
+    playClick();
+    setScreen('select');
+  };
+
   const renderScreen = () => {
     switch (screen) {
       case 'start':
@@ -166,6 +171,7 @@ function App() {
               key={selectedStage.id}
               stageConfig={selectedStage}
               onBattleComplete={handleBattleComplete}
+              onGiveUp={handleBattleGiveUp}
             />
           );
         }

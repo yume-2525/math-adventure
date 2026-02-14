@@ -16,9 +16,10 @@ interface DamageFloat {
 interface BattleScreenProps {
   stageConfig: StageConfig;
   onBattleComplete: (log: BattleLogEntry[], isClear: boolean) => void;
+  onGiveUp: () => void;
 }
 
-function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
+function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenProps) {
     const [playerHP, setPlayerHP] = useState(3 * 100); 
     const [enemyHP, setEnemyHP] = useState(stageConfig.enemyHP);
     const maxPlayerHP = 3 * 100;
@@ -31,9 +32,11 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
     const [shakeTarget, setShakeTarget] = useState<'none' | 'enemy' | 'player'>('none');
     const [damageFloats, setDamageFloats] = useState<DamageFloat[]>([]);
     const [isVictoryAnimationPlaying, setIsVictoryAnimationPlaying] = useState(false);
+    const [showGiveUpConfirm, setShowGiveUpConfirm] = useState(false);
     const totalTime = stageConfig.totalTime;
     const problemStartTimeRef = useRef<number>(0); 
-    const [isTimerActive, setIsTimerActive] = useState(false); 
+    const [isTimerActive, setIsTimerActive] = useState(false);
+    const elapsedTimeWhenPausedRef = useRef<number>(0); // 一時停止時点の経過時間を保持 
 
     const isGameOver = playerHP <= 0;
     const isGameClear = enemyHP <= 0;
@@ -74,6 +77,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
       setCurrentProblem(newProblem); 
       setCurrentAnswer(""); 
       problemStartTimeRef.current = Date.now();
+      elapsedTimeWhenPausedRef.current = 0; // 新しい問題開始時は経過時間をリセット
       setIsTimerActive(true); 
     }, [playerHP, enemyHP, stageConfig.calculationSettings]);
 
@@ -105,7 +109,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
 
 
     const handleCheckAnswer = (e: React.MouseEvent) => {
-        if (currentAnswer === "" || !currentProblem || isVictoryAnimationPlaying) return;
+        if (currentAnswer === "" || !currentProblem || isVictoryAnimationPlaying || showGiveUpConfirm) return;
 
         const timeTaken = Date.now() - problemStartTimeRef.current;
         setFeedbackPos({ x: e.clientX, y: e.clientY });
@@ -143,6 +147,7 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
     };
     
     const handleInput = (key: string) => {
+        if (showGiveUpConfirm) return;
         playClick();
         if (key === "⌫") {
             setCurrentAnswer((prev) => prev.slice(0, -1));
@@ -151,6 +156,35 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
             if (currentAnswer.length < maxAnswerLength) {
                 setCurrentAnswer((prev) => prev + key);
             }
+        }
+    };
+
+    const handleGiveUpClick = () => {
+        playClick();
+        // タイマーが動作中の場合、停止時点の経過時間を記録
+        if (isTimerActive && currentProblem) {
+            const elapsed = Date.now() - problemStartTimeRef.current;
+            elapsedTimeWhenPausedRef.current = elapsed;
+        }
+        setIsTimerActive(false);
+        setShowGiveUpConfirm(true);
+    };
+
+    const handleConfirmGiveUp = () => {
+        playClick();
+        onGiveUp();
+    };
+
+    const handleCancelGiveUp = () => {
+        playClick();
+        setShowGiveUpConfirm(false);
+        // ゲームが終了していない場合は再開
+        if (!isGameOver && !isGameClear && currentProblem) {
+            // 停止時点の経過時間を考慮して、problemStartTimeRefを調整
+            // これにより、タイマーは停止時点からの残り時間で再開される
+            const elapsed = elapsedTimeWhenPausedRef.current;
+            problemStartTimeRef.current = Date.now() - elapsed;
+            setIsTimerActive(true);
         }
     };
     
@@ -166,6 +200,38 @@ function BattleScreen({ stageConfig, onBattleComplete }: BattleScreenProps) {
                 backgroundRepeat: 'no-repeat',
             }}
         >
+            {/* あきらめるボタン */}
+            <button
+                onClick={handleGiveUpClick}
+                className="absolute bottom-4 left-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg z-30 transition-colors"
+                disabled={isVictoryAnimationPlaying || isGameOver || isGameClear}
+            >
+                あきらめる
+            </button>
+
+            {/* あきらめる確認ダイアログ */}
+            {showGiveUpConfirm && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full mx-4">
+                        <h3 className="text-2xl font-bold mb-4 text-center">本当に諦める？</h3>
+                        <div className="flex gap-4 justify-center mt-6">
+                            <button
+                                onClick={handleConfirmGiveUp}
+                                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors"
+                            >
+                                はい
+                            </button>
+                            <button
+                                onClick={handleCancelGiveUp}
+                                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors"
+                            >
+                                いいえ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {isVictoryAnimationPlaying && (
                 <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center z-50">
                     <div className="absolute inset-0 pointer-events-none">
