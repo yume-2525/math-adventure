@@ -137,7 +137,8 @@ function App() {
       case 'area':
         return (
           <AreaSelectScreen
-            areas={areas.map(a => ({ id: a.id, name: a.name }))}
+            areas={areas.map(a => ({ id: a.id, name: a.name, config: a }))}
+            bestScores={bestScores}
             onAreaSelect={handleAreaSelect}
             onBackToStart={handleBackToStart}
           />
@@ -148,7 +149,8 @@ function App() {
         if (!currentArea) {
             return (
                 <AreaSelectScreen
-                    areas={areas.map(a => ({ id: a.id, name: a.name }))}
+                    areas={areas.map(a => ({ id: a.id, name: a.name, config: a }))}
+                    bestScores={bestScores}
                     onAreaSelect={handleAreaSelect}
                     onBackToStart={handleBackToStart}
                 />

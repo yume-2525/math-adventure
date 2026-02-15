@@ -20,9 +20,9 @@ interface BattleScreenProps {
 }
 
 function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenProps) {
-    const [playerHP, setPlayerHP] = useState(3 * 100); 
+    const [playerHP, setPlayerHP] = useState(120); 
     const [enemyHP, setEnemyHP] = useState(stageConfig.enemyHP);
-    const maxPlayerHP = 3 * 100;
+    const maxPlayerHP = 120;
     const maxEnemyHP = stageConfig.enemyHP;
     const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
     const [currentAnswer, setCurrentAnswer] = useState("");

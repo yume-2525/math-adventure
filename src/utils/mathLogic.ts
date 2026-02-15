@@ -4,6 +4,7 @@ import type { CalculationSettings } from '../types/game';
 export type Problem = {
   operand1: number;
   operand2: number;
+  operand3?: number; // 3つの数の計算の場合
   operator: Operator;
   answer: number;
   text: string;
@@ -14,15 +15,46 @@ export type Problem = {
  * CalculationSettingsに基づいて動的に問題を生成する
  */
 export function generateProblem(settings: CalculationSettings): Problem {
-  const { digits1, digits2, allowedOperators, allowCarryOver, multiplicationTableOnly, allowNegative } = settings;
+  const { 
+    digits1, 
+    digits2, 
+    allowedOperators, 
+    allowCarryOver, 
+    multiplicationTableOnly, 
+    multiplicationTableRow,
+    allowNegative,
+    threeNumbers,
+    maxValue
+  } = settings;
 
-  const max1 = 10 ** digits1 - 1;
-  const max2 = 10 ** digits2 - 1;
+  // maxValueが指定されている場合はそれを使用、そうでなければ桁数から計算
+  const max1 = maxValue !== undefined ? Math.min(maxValue, 10 ** digits1 - 1) : 10 ** digits1 - 1;
+  const max2 = maxValue !== undefined ? Math.min(maxValue, 10 ** digits2 - 1) : 10 ** digits2 - 1;
 
   let operand1: number;
   let operand2: number;
+  let operand3: number | undefined;
   let operator: Operator;
   let answer: number;
+
+  // 3つの数の計算の場合
+  if (threeNumbers && allowedOperators.includes('+')) {
+    // 3つの数の足し算のみ対応（20までの計算など）
+    const max = maxValue || 20;
+    operand1 = Math.floor(Math.random() * (max + 1));
+    operand2 = Math.floor(Math.random() * (max - operand1 + 1));
+    operand3 = Math.floor(Math.random() * (max - operand1 - operand2 + 1));
+    operator = '+';
+    answer = operand1 + operand2 + operand3;
+    return {
+      operand1,
+      operand2,
+      operand3,
+      operator,
+      answer,
+      text: `${operand1} + ${operand2} + ${operand3}`,
+    };
+  }
 
   // 演算子をランダムに選択
   operator = allowedOperators[Math.floor(Math.random() * allowedOperators.length)];
@@ -32,6 +64,15 @@ export function generateProblem(settings: CalculationSettings): Problem {
     case '+':
       operand1 = Math.floor(Math.random() * (max1 + 1));
       operand2 = Math.floor(Math.random() * (max2 + 1));
+      
+      // maxValueが指定されている場合の制限
+      if (maxValue !== undefined) {
+        // 合計がmaxValueを超えないように調整
+        if (operand1 + operand2 > maxValue) {
+          operand1 = Math.floor(Math.random() * (maxValue + 1));
+          operand2 = Math.floor(Math.random() * (maxValue - operand1 + 1));
+        }
+      }
       
       // 繰り上がりなしの設定がある場合、繰り上がりが発生しないように調整
       if (allowCarryOver === false) {
@@ -54,6 +95,12 @@ export function generateProblem(settings: CalculationSettings): Problem {
     case '-':
       operand1 = Math.floor(Math.random() * (max1 + 1));
       operand2 = Math.floor(Math.random() * (max2 + 1));
+      
+      // maxValueが指定されている場合の制限
+      if (maxValue !== undefined) {
+        operand1 = Math.floor(Math.random() * (maxValue + 1));
+        operand2 = Math.floor(Math.random() * (operand1 + 1));
+      }
       
       // 負の数を許可しない場合、operand1 >= operand2 を保証
       if (allowNegative !== true && operand1 < operand2) {
@@ -90,9 +137,15 @@ export function generateProblem(settings: CalculationSettings): Problem {
 
     case '×':
       if (multiplicationTableOnly) {
-        // 九九のみ（1-9の範囲）
-        operand1 = Math.floor(Math.random() * 9) + 1; // 1-9
-        operand2 = Math.floor(Math.random() * 9) + 1; // 1-9
+        if (multiplicationTableRow !== undefined) {
+          // 特定の段を指定（例: 3の段）
+          operand1 = multiplicationTableRow;
+          operand2 = Math.floor(Math.random() * 9) + 1; // 1-9
+        } else {
+          // 九九のみ（1-9の範囲、全段ランダム）
+          operand1 = Math.floor(Math.random() * 9) + 1; // 1-9
+          operand2 = Math.floor(Math.random() * 9) + 1; // 1-9
+        }
       } else {
         operand1 = Math.floor(Math.random() * (max1 + 1));
         operand2 = Math.floor(Math.random() * (max2 + 1));
@@ -188,6 +241,137 @@ export const CalculationPresets = {
     digits1: 2,
     digits2: 1,
     allowedOperators: ['+', '-', '×'] as const,
+    allowCarryOver: true,
+    allowNegative: false,
+  } as CalculationSettings,
+
+  /** 5までの足し算（1桁+1桁、繰り上がりなし） */
+  additionUpTo5: {
+    digits1: 1,
+    digits2: 1,
+    allowedOperators: ['+'] as const,
+    allowCarryOver: false,
+    maxValue: 5,
+  } as CalculationSettings,
+
+  /** 10までの足し算（1桁+1桁、繰り上がりなし） */
+  additionUpTo10: {
+    digits1: 1,
+    digits2: 1,
+    allowedOperators: ['+'] as const,
+    allowCarryOver: false,
+    maxValue: 10,
+  } as CalculationSettings,
+
+  /** 10までの引き算（1桁-1桁、繰り下がりなし） */
+  subtractionUpTo10: {
+    digits1: 1,
+    digits2: 1,
+    allowedOperators: ['-'] as const,
+    allowCarryOver: false,
+    allowNegative: false,
+    maxValue: 10,
+  } as CalculationSettings,
+
+  /** 10までの加減混合 */
+  additionSubtractionUpTo10: {
+    digits1: 1,
+    digits2: 1,
+    allowedOperators: ['+', '-'] as const,
+    allowCarryOver: false,
+    allowNegative: false,
+    maxValue: 10,
+  } as CalculationSettings,
+
+  /** 10までの加減（スピード勝負、繰り上がり/下がりあり） */
+  additionSubtractionUpTo10WithCarry: {
+    digits1: 1,
+    digits2: 1,
+    allowedOperators: ['+', '-'] as const,
+    allowCarryOver: true,
+    allowNegative: false,
+    maxValue: 10,
+  } as CalculationSettings,
+
+  /** 繰り上がりあり足し算（20まで） */
+  additionWithCarryUpTo20: {
+    digits1: 1,
+    digits2: 1,
+    allowedOperators: ['+'] as const,
+    allowCarryOver: true,
+    maxValue: 20,
+  } as CalculationSettings,
+
+  /** 繰り下がりあり引き算（20まで） */
+  subtractionWithBorrowUpTo20: {
+    digits1: 1,
+    digits2: 1,
+    allowedOperators: ['-'] as const,
+    allowCarryOver: true,
+    allowNegative: false,
+    maxValue: 20,
+  } as CalculationSettings,
+
+  /** 20までの3つの数の足し算 */
+  threeNumbersUpTo20: {
+    digits1: 1,
+    digits2: 1,
+    allowedOperators: ['+'] as const,
+    threeNumbers: true,
+    maxValue: 20,
+  } as CalculationSettings,
+
+  /** 20までの加減混合 */
+  additionSubtractionUpTo20: {
+    digits1: 1,
+    digits2: 1,
+    allowedOperators: ['+', '-'] as const,
+    allowCarryOver: true,
+    allowNegative: false,
+    maxValue: 20,
+  } as CalculationSettings,
+
+  /** 2桁 ± 1桁（繰り上がり/下がりなし） */
+  twoDigitOneDigitNoCarry: {
+    digits1: 2,
+    digits2: 1,
+    allowedOperators: ['+', '-'] as const,
+    allowCarryOver: false,
+    allowNegative: false,
+  } as CalculationSettings,
+
+  /** 2桁 ± 1桁（繰り上がり/下がりあり） */
+  twoDigitOneDigitWithCarry: {
+    digits1: 2,
+    digits2: 1,
+    allowedOperators: ['+', '-'] as const,
+    allowCarryOver: true,
+    allowNegative: false,
+  } as CalculationSettings,
+
+  /** 2桁 ± 2桁（繰り上がり/下がりなし） */
+  twoDigitTwoDigitNoCarry: {
+    digits1: 2,
+    digits2: 2,
+    allowedOperators: ['+', '-'] as const,
+    allowCarryOver: false,
+    allowNegative: false,
+  } as CalculationSettings,
+
+  /** 2桁 ± 2桁（繰り上がり/下がりあり） */
+  twoDigitTwoDigitWithCarry: {
+    digits1: 2,
+    digits2: 2,
+    allowedOperators: ['+', '-'] as const,
+    allowCarryOver: true,
+    allowNegative: false,
+  } as CalculationSettings,
+
+  /** 2桁加減（スピード混合） */
+  twoDigitMixedSpeed: {
+    digits1: 2,
+    digits2: 2,
+    allowedOperators: ['+', '-'] as const,
     allowCarryOver: true,
     allowNegative: false,
   } as CalculationSettings,

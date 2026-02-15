@@ -15,8 +15,14 @@ export interface CalculationSettings {
   allowCarryOver?: boolean;
   /** 九九のみに限定するか（掛け算の場合） */
   multiplicationTableOnly?: boolean;
+  /** 九九の特定の段を指定（1-9、指定しない場合は全段） */
+  multiplicationTableRow?: number;
   /** 負の数を許可するか（引き算の場合） */
   allowNegative?: boolean;
+  /** 3つの数の計算を行うか */
+  threeNumbers?: boolean;
+  /** 最大値の制限（例: 10までの計算、20までの計算） */
+  maxValue?: number;
 }
 
 /**
@@ -55,6 +61,8 @@ export interface AreaConfig {
   description?: string;
   /** エリア選択画面で使用する画像パス */
   image?: string;
+  /** 100%達成時に表示する恐竜の画像パス（オプション） */
+  dinosaurImage?: string;
   /** このエリアに含まれるステージのリスト */
   stages: StageConfig[];
 }
