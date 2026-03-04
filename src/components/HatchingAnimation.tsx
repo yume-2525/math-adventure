@@ -179,7 +179,7 @@ const HatchingAnimation: React.FC<HatchingAnimationProps> = ({ areaImage, areaNa
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
-              className="w-48 h-48 mb-8 relative z-10"
+              className="w-48 h-48 mb-4 relative z-10"
             >
               {assets?.baby ? (
                 <img
@@ -191,7 +191,7 @@ const HatchingAnimation: React.FC<HatchingAnimationProps> = ({ areaImage, areaNa
                   className={PIXELATED_CLASS}
                 />
               ) : areaImage ? (
-                <img src={areaImage} alt="恐竜" className="w-full h-full object-contain" />
+                <img src={areaImage} alt="恐竜" className="w-full h-full object-contain [image-rendering:pixelated]" />
               ) : (
                 <div className="w-full h-full bg-yellow-400 rounded-full flex items-center justify-center text-8xl">
                   🦕
@@ -204,7 +204,7 @@ const HatchingAnimation: React.FC<HatchingAnimationProps> = ({ areaImage, areaNa
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="text-6xl font-black text-yellow-400 mb-4 relative z-10"
+              className="text-2xl md:text-3xl font-black text-yellow-400 text-center whitespace-nowrap mt-6 mb-4 relative z-10"
               style={{ textShadow: '0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6)' }}
             >
               エリアクリア!!

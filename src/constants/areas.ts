@@ -8,7 +8,7 @@ import { CalculationPresets } from '../utils/mathLogic';
 export const areas: AreaConfig[] = [
   {
     id: 'area1',
-    name: 'たしざんの はじまり（1桁）',
+    name: 'はじまりの草原',
     description: '5までのたしざんからスタート',
     image: '/images/世界地図.png',
     stages: [
@@ -66,7 +66,7 @@ export const areas: AreaConfig[] = [
   },
   {
     id: 'area2',
-    name: 'ひきざんの はじまり（1桁）',
+    name: 'かわいた砂漠',
     description: '5からのひきざん、10からのひきざん',
     image: '/images/世界地図.png',
     stages: [
@@ -124,7 +124,7 @@ export const areas: AreaConfig[] = [
   },
   {
     id: 'area3',
-    name: '2桁の たしざん',
+    name: 'もえさかる火山',
     description: '筆算・右から入力（スモールステップ）',
     image: '/images/世界地図.png',
     stages: [
@@ -262,7 +262,7 @@ export const areas: AreaConfig[] = [
   },
   {
     id: 'area4',
-    name: '2桁の ひきざん',
+    name: 'こごえる雪山',
     description: '筆算・右から入力（スモールステップ）',
     image: '/images/世界地図.png',
     stages: [
@@ -400,7 +400,7 @@ export const areas: AreaConfig[] = [
   },
   {
     id: 'area5',
-    name: '九九チャレンジ',
+    name: 'じめじめ湿地',
     description: '一の段〜九の段＋全段ランダムボス',
     image: '/images/世界地図.png',
     stages: [

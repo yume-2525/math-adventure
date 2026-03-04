@@ -51,18 +51,20 @@ const AreaSelectScreen: React.FC<AreaSelectScreenProps> = ({
                 key={area.id}
                 className="flex items-center gap-4 w-full max-w-md"
               >
-                <button
-                  onClick={() => onAreaSelect(area.id)}
-                  className="bg-white text-lg font-bold py-3 px-5 rounded-lg shadow-md hover:bg-blue-100 transition-colors text-center flex-1 min-w-[200px]"
-                >
-                  {area.name}
-                </button>
                 <AreaProgressGauge
                   current={current}
                   total={total}
                   areaImage={area.config.dinosaurImage}
                   areaId={area.id}
+                  hideProgressText
+                  large
                 />
+                <button
+                  onClick={() => onAreaSelect(area.id)}
+                  className="bg-white text-lg font-bold py-3 px-5 rounded-lg shadow-md hover:bg-blue-100 transition-colors text-center flex-1 min-w-[200px]"
+                >
+                  {area.name} ({current}/{total})
+                </button>
               </div>
             );
           })}

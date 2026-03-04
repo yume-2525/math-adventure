@@ -31,7 +31,9 @@ const StageSelectScreen: React.FC<StageSelectScreenProps> = ({ stages, onStageSe
               onClick={() => onStageSelect(stage)}
               className="w-80 bg-white p-4 rounded-lg shadow-md hover:bg-blue-100 transition-colors flex justify-between items-center text-left"
             >
-              <span className="text-xl font-bold">{stage.name}</span>
+              <span className="text-xl font-bold whitespace-pre-line">
+                {stage.name.replace('：', '：\n')}
+              </span>
               {bestRank && (
                 <div className="text-sm font-bold">
                   <span>BEST: </span>

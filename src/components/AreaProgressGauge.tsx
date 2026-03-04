@@ -9,9 +9,13 @@ interface AreaProgressGaugeProps {
   total: number;
   areaImage?: string;
   areaId?: string;
+  /** true のとき「current/total」のテキストを非表示（エリア名に統合する場合など） */
+  hideProgressText?: boolean;
+  /** 表示サイズを1.5倍にする（エリア選択画面用） */
+  large?: boolean;
 }
 
-const AreaProgressGauge: React.FC<AreaProgressGaugeProps> = ({ current, total, areaImage, areaId }) => {
+const AreaProgressGauge: React.FC<AreaProgressGaugeProps> = ({ current, total, areaImage, areaId, hideProgressText, large }) => {
   const percentage = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
   const circumference = 2 * Math.PI * 30; // 半径30pxの円周
   const offset = circumference - (percentage / 100) * circumference;
@@ -66,8 +70,11 @@ const AreaProgressGauge: React.FC<AreaProgressGaugeProps> = ({ current, total, a
     console.log('[AreaProgressGauge] img src', { areaId, eggState, src: eggImageSrc });
   }
 
+  const sizeClass = large ? 'w-36 h-36' : 'w-24 h-24';
+  const iconClass = large ? 'w-[4.5rem] h-[4.5rem]' : 'w-12 h-12';
+
   return (
-    <div className="relative w-24 h-24 flex items-center">
+    <div className={`relative flex items-center ${sizeClass}`}>
       {/* SVG ドーナツ型ゲージ */}
       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
         <defs>
@@ -116,7 +123,7 @@ const AreaProgressGauge: React.FC<AreaProgressGaugeProps> = ({ current, total, a
             initial={eggState === 'hatched' ? { scale: 0 } : undefined}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            className="w-12 h-12"
+            className={iconClass}
           >
             <img
               src={eggImageSrc}
@@ -129,10 +136,10 @@ const AreaProgressGauge: React.FC<AreaProgressGaugeProps> = ({ current, total, a
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            className="w-12 h-12"
+            className={iconClass}
           >
             {areaImage ? (
-              <img src={areaImage} alt="恐竜" className="w-full h-full object-contain" />
+              <img src={areaImage} alt="恐竜" className={`w-full h-full object-contain [image-rendering:pixelated]`} />
             ) : (
               <div className="w-full h-full bg-yellow-400 rounded-full flex items-center justify-center text-xl">
                 🦕
@@ -143,7 +150,7 @@ const AreaProgressGauge: React.FC<AreaProgressGaugeProps> = ({ current, total, a
           <motion.div
             animate={percentage === 100 ? { scale: [1, 1.1, 1] } : {}}
             transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
-            className="w-12 h-12 relative"
+            className={`${iconClass} relative`}
           >
             <div className="w-full h-full bg-gradient-to-b from-amber-100 to-amber-200 rounded-full border-2 border-amber-300" />
             {eggState === 'cracked-heavy' && (
@@ -164,10 +171,11 @@ const AreaProgressGauge: React.FC<AreaProgressGaugeProps> = ({ current, total, a
         )}
       </div>
 
-      {/* 達成率テキスト */}
-      <div className="absolute left-full ml-3 text-sm font-bold text-gray-700 whitespace-nowrap">
-        {current}/{total}
-      </div>
+      {!hideProgressText && (
+        <div className="absolute left-full ml-3 text-sm font-bold text-gray-700 whitespace-nowrap">
+          {current}/{total}
+        </div>
+      )}
     </div>
   );
 };
