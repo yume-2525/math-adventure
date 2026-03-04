@@ -15,7 +15,16 @@ const StageSelectScreen: React.FC<StageSelectScreenProps> = ({ stages, onStageSe
       <h1 className="text-4xl font-bold mb-8">ステージを選んでね</h1>
       <div className="space-y-4">
         {stages.map((stage) => {
-          const bestRank = bestScores[stage.id]?.bestRank;
+          const scoreData = bestScores[stage.id];
+          const bestScore = scoreData?.bestScore ?? 0;
+
+          let bestRank: string | undefined;
+          if (bestScore >= 9000) bestRank = 'S';
+          else if (bestScore >= 7500) bestRank = 'A';
+          else if (bestScore >= 5000) bestRank = 'B';
+          else if (bestScore >= 2500) bestRank = 'C';
+          else if (bestScore > 0) bestRank = 'D';
+
           return (
             <button
               key={stage.id}

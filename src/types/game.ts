@@ -11,6 +11,22 @@ export interface CalculationSettings {
   digits2: number;
   /** 使用可能な演算子 */
   allowedOperators: readonly Operator[];
+  /** 第1オペランドの最小値（オプション） */
+  operand1Min?: number;
+  /** 第2オペランドの最小値（オプション） */
+  operand2Min?: number;
+  /** 第2オペランドの最大値（オプション） */
+  operand2Max?: number;
+  /** 第1オペランドを固定する（例: 10 - ? の「10」） */
+  fixedOperand1?: number;
+  /** 足し算で「合計を固定」する（例: 10になる足し算） */
+  targetSum?: number;
+  /** 答えの最小値 */
+  minAnswer?: number;
+  /** 答えの最大値 */
+  maxAnswer?: number;
+  /** 必ず繰り上がり/繰り下がりを発生させるか */
+  mustCarry?: boolean;
   /** 繰り上がり・繰り下がりを許可するか（足し算・引き算の場合） */
   allowCarryOver?: boolean;
   /** 九九のみに限定するか（掛け算の場合） */
@@ -42,6 +58,8 @@ export interface StageConfig {
   enemyHP: number;
   /** 問題ごとの制限時間（ミリ秒） */
   totalTime: number;
+  /** 表示モード（デフォルトは横並び） */
+  displayMode?: 'horizontal' | 'vertical';
   /** 計算問題の設定 */
   calculationSettings: CalculationSettings;
   /** ミス時のダメージ量 */

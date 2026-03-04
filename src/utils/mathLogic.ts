@@ -19,6 +19,14 @@ export function generateProblem(settings: CalculationSettings): Problem {
     digits1, 
     digits2, 
     allowedOperators, 
+    operand1Min,
+    operand2Min,
+    operand2Max,
+    fixedOperand1,
+    targetSum,
+    minAnswer,
+    maxAnswer,
+    mustCarry,
     allowCarryOver, 
     multiplicationTableOnly, 
     multiplicationTableRow,
@@ -37,129 +45,175 @@ export function generateProblem(settings: CalculationSettings): Problem {
   let operator: Operator;
   let answer: number;
 
-  // 3つの数の計算の場合
-  if (threeNumbers && allowedOperators.includes('+')) {
-    // 3つの数の足し算のみ対応（20までの計算など）
-    const max = maxValue || 20;
-    operand1 = Math.floor(Math.random() * (max + 1));
-    operand2 = Math.floor(Math.random() * (max - operand1 + 1));
-    operand3 = Math.floor(Math.random() * (max - operand1 - operand2 + 1));
-    operator = '+';
-    answer = operand1 + operand2 + operand3;
-    return {
-      operand1,
-      operand2,
-      operand3,
-      operator,
-      answer,
-      text: `${operand1} + ${operand2} + ${operand3}`,
-    };
-  }
+  const MAX_RETRY = 100;
 
-  // 演算子をランダムに選択
-  operator = allowedOperators[Math.floor(Math.random() * allowedOperators.length)];
+  // 2桁計算では operand を最低でも 10（または設定値）以上にする
+  const effectiveMin1 = digits1 >= 2 ? (operand1Min ?? 10) : (operand1Min ?? 0);
+  const effectiveMin2 = digits2 >= 2 ? (operand2Min ?? 10) : (operand2Min ?? 0);
 
-  // 演算子に応じて問題を生成
-  switch (operator) {
-    case '+':
-      operand1 = Math.floor(Math.random() * (max1 + 1));
-      operand2 = Math.floor(Math.random() * (max2 + 1));
-      
-      // maxValueが指定されている場合の制限
-      if (maxValue !== undefined) {
-        // 合計がmaxValueを超えないように調整
-        if (operand1 + operand2 > maxValue) {
+  // 条件を満たす問題が生成できるまで最大 MAX_RETRY 回試行
+  for (let i = 0; i < MAX_RETRY; i++) {
+    // 3つの数の計算の場合（既存ロジックを基本的に維持）
+    if (threeNumbers && allowedOperators.includes('+')) {
+      const max = maxValue || 20;
+      operand1 = Math.floor(Math.random() * (max + 1));
+      operand2 = Math.floor(Math.random() * (max - operand1 + 1));
+      operand3 = Math.floor(Math.random() * (max - operand1 - operand2 + 1));
+      operator = '+';
+      answer = operand1 + operand2 + (operand3 ?? 0);
+
+      if (
+        (minAnswer === undefined || answer >= minAnswer) &&
+        (maxAnswer === undefined || answer <= maxAnswer)
+      ) {
+        return {
+          operand1,
+          operand2,
+          operand3,
+          operator,
+          answer,
+          text: `${operand1} + ${operand2} + ${operand3}`,
+        };
+      }
+      continue;
+    }
+
+    // 演算子をランダムに選択
+    operator = allowedOperators[Math.floor(Math.random() * allowedOperators.length)];
+    operand3 = undefined;
+
+    switch (operator) {
+      case '+': {
+        const maxOp2 = operand2Max ?? max2;
+
+        if (targetSum !== undefined) {
+          // targetSum 優先：operand1 をランダム、operand2 = targetSum - operand1
+          const minOperand1ForTarget = Math.max(effectiveMin1, targetSum - maxOp2);
+          const maxOperand1ForTarget = Math.min(max1, targetSum - effectiveMin2);
+
+          if (minOperand1ForTarget > maxOperand1ForTarget) {
+            operand1 = effectiveMin1;
+            operand2 = effectiveMin2;
+          } else {
+            operand1 =
+              Math.floor(
+                Math.random() * (maxOperand1ForTarget - minOperand1ForTarget + 1),
+              ) + minOperand1ForTarget;
+            operand2 = targetSum - operand1;
+          }
+        } else {
+          operand1 =
+            Math.floor(Math.random() * (max1 - effectiveMin1 + 1)) + effectiveMin1;
+          operand2 =
+            Math.floor(Math.random() * (maxOp2 - effectiveMin2 + 1)) + effectiveMin2;
+
+          // 1桁同士で繰り上がりなしの場合は 0〜9 の範囲で再生成
+          if (digits1 === 1 && digits2 === 1 && allowCarryOver === false) {
+            operand1 = Math.floor(Math.random() * 6); // 0-5
+            operand2 = Math.floor(Math.random() * (10 - operand1)); // 合計が9以下
+          }
+        }
+
+        // maxValue がある場合は合計が maxValue を超えないように調整
+        if (maxValue !== undefined && operand1 + operand2 > maxValue) {
           operand1 = Math.floor(Math.random() * (maxValue + 1));
           operand2 = Math.floor(Math.random() * (maxValue - operand1 + 1));
         }
-      }
-      
-      // 繰り上がりなしの設定がある場合、繰り上がりが発生しないように調整
-      if (allowCarryOver === false) {
-        // 各桁で繰り上がりが発生しないように制限
-        const maxNoCarry1 = Math.min(max1, 9);
-        const maxNoCarry2 = Math.min(max2, 9);
-        operand1 = Math.floor(Math.random() * (maxNoCarry1 + 1));
-        operand2 = Math.floor(Math.random() * (maxNoCarry2 + 1));
-        
-        // 一桁同士でも繰り上がりが発生しないように
-        if (digits1 === 1 && digits2 === 1) {
-          operand1 = Math.floor(Math.random() * 6); // 0-5
-          operand2 = Math.floor(Math.random() * (10 - operand1)); // 合計が9以下になるように
-        }
-      }
-      
-      answer = operand1 + operand2;
-      break;
 
-    case '-':
-      operand1 = Math.floor(Math.random() * (max1 + 1));
-      operand2 = Math.floor(Math.random() * (max2 + 1));
-      
-      // maxValueが指定されている場合の制限
-      if (maxValue !== undefined) {
-        operand1 = Math.floor(Math.random() * (maxValue + 1));
-        operand2 = Math.floor(Math.random() * (operand1 + 1));
-      }
-      
-      // 負の数を許可しない場合、operand1 >= operand2 を保証
-      if (allowNegative !== true && operand1 < operand2) {
-        [operand1, operand2] = [operand2, operand1];
-      }
-      
-      // 繰り下がりなしの設定がある場合
-      if (allowCarryOver === false) {
-        // 各桁で繰り下がりが発生しないように調整
-        const op1Str = operand1.toString().padStart(digits1, '0');
-        const op2Str = operand2.toString().padStart(digits2, '0');
-        const maxLen = Math.max(digits1, digits2);
-        
-        // 各桁で operand1 の桁 >= operand2 の桁 を保証
-        let valid = true;
-        for (let i = 0; i < maxLen; i++) {
-          const d1 = parseInt(op1Str[op1Str.length - 1 - i] || '0');
-          const d2 = parseInt(op2Str[op2Str.length - 1 - i] || '0');
-          if (d1 < d2) {
-            valid = false;
-            break;
-          }
-        }
-        
-        // 無効な場合は再生成（簡易実装）
-        if (!valid && operand1 >= operand2) {
-          // 簡単な方法：operand2を小さくする
-          operand2 = Math.floor(Math.random() * Math.min(operand1 + 1, max2 + 1));
-        }
-      }
-      
-      answer = operand1 - operand2;
-      break;
+        answer = operand1 + operand2;
 
-    case '×':
-      if (multiplicationTableOnly) {
-        if (multiplicationTableRow !== undefined) {
-          // 特定の段を指定（例: 3の段）
-          operand1 = multiplicationTableRow;
-          operand2 = Math.floor(Math.random() * 9) + 1; // 1-9
+        // 足し算：繰り上がりなし（allowCarryOver === false）→ 一の位の和 < 10
+        if (allowCarryOver === false && (operand1 % 10) + (operand2 % 10) >= 10) {
+          continue;
+        }
+        // 足し算：必ず繰り上がり（mustCarry === true）→ 一の位の和 >= 10
+        if (mustCarry && (operand1 % 10) + (operand2 % 10) < 10) {
+          continue;
+        }
+
+        break;
+      }
+
+      case '-': {
+        const maxOp2 = operand2Max ?? max2;
+
+        if (fixedOperand1 !== undefined) {
+          operand1 = fixedOperand1;
         } else {
-          // 九九のみ（1-9の範囲、全段ランダム）
-          operand1 = Math.floor(Math.random() * 9) + 1; // 1-9
-          operand2 = Math.floor(Math.random() * 9) + 1; // 1-9
+          operand1 =
+            Math.floor(Math.random() * (max1 - effectiveMin1 + 1)) + effectiveMin1;
         }
-      } else {
-        operand1 = Math.floor(Math.random() * (max1 + 1));
-        operand2 = Math.floor(Math.random() * (max2 + 1));
+
+        operand2 =
+          Math.floor(Math.random() * (maxOp2 - effectiveMin2 + 1)) + effectiveMin2;
+
+        if (maxValue !== undefined) {
+          operand1 = Math.floor(Math.random() * (maxValue + 1));
+          operand2 = Math.floor(Math.random() * (operand1 + 1));
+        }
+
+        // 負の数を許可しない場合、operand1 >= operand2 を保証
+        if (allowNegative !== true && operand1 < operand2) {
+          [operand1, operand2] = [operand2, operand1];
+        }
+
+        answer = operand1 - operand2;
+
+        // 引き算：繰り下がりなし（allowCarryOver === false）→ 一の位で operand1 >= operand2
+        if (allowCarryOver === false && (operand1 % 10) < (operand2 % 10)) {
+          continue;
+        }
+        // 引き算：必ず繰り下がり（mustCarry === true）→ 一の位で operand1 < operand2
+        if (mustCarry && (operand1 % 10) >= (operand2 % 10)) {
+          continue;
+        }
+
+        break;
       }
-      answer = operand1 * operand2;
-      break;
+
+      case '×': {
+        if (multiplicationTableOnly) {
+          if (multiplicationTableRow !== undefined) {
+            operand1 = multiplicationTableRow;
+            operand2 = Math.floor(Math.random() * 9) + 1; // 1-9
+          } else {
+            operand1 = Math.floor(Math.random() * 9) + 1;
+            operand2 = Math.floor(Math.random() * 9) + 1;
+          }
+        } else {
+          operand1 = Math.floor(Math.random() * (max1 + 1));
+          operand2 = Math.floor(Math.random() * (max2 + 1));
+        }
+        answer = operand1 * operand2;
+        break;
+      }
+    }
+
+    // 2桁計算では各オペランドが最低でも effectiveMin 以上
+    if (digits1 >= 2 && operand1 < effectiveMin1) continue;
+    if (digits2 >= 2 && operand2 < effectiveMin2) continue;
+
+    if (
+      (minAnswer === undefined || answer >= minAnswer) &&
+      (maxAnswer === undefined || answer <= maxAnswer)
+    ) {
+      return {
+        operand1,
+        operand2,
+        operator,
+        answer,
+        text: `${operand1} ${operator} ${operand2}`,
+      };
+    }
   }
 
+  // フォールバック（理論的には到達しない想定）
   return {
-    operand1,
-    operand2,
-    operator,
-    answer,
-    text: `${operand1} ${operator} ${operand2}`,
+    operand1: 1,
+    operand2: 1,
+    operator: '+',
+    answer: 2,
+    text: '1 + 1',
   };
 }
 

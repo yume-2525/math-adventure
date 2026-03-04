@@ -24,13 +24,13 @@ const AreaSelectScreen: React.FC<AreaSelectScreenProps> = ({
   onAreaSelect, 
   onBackToStart 
 }) => {
-  const [hatchingArea, setHatchingArea] = useState<AreaConfig | null>(null);
+  const [hatchingArea, setHatchingArea] = useState<Area | null>(null);
 
   // エリア選択画面に戻った時に、100%達成をチェック
   useEffect(() => {
     areas.forEach((area) => {
       if (isFirstTimeCompletion(area.config.id, area.config, bestScores)) {
-        setHatchingArea(area.config);
+        setHatchingArea(area);
       }
     });
   }, [areas, bestScores]);
@@ -61,6 +61,7 @@ const AreaSelectScreen: React.FC<AreaSelectScreenProps> = ({
                   current={current}
                   total={total}
                   areaImage={area.config.dinosaurImage}
+                  areaId={area.id}
                 />
               </div>
             );
@@ -77,8 +78,9 @@ const AreaSelectScreen: React.FC<AreaSelectScreenProps> = ({
       {/* ハッチングアニメーション */}
       {hatchingArea && (
         <HatchingAnimation
-          areaImage={hatchingArea.dinosaurImage}
-          areaName={hatchingArea.name}
+          areaImage={hatchingArea.config.dinosaurImage}
+          areaName={hatchingArea.config.name}
+          areaId={hatchingArea.id}
           onComplete={handleHatchingComplete}
         />
       )}

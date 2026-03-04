@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { playClick } from '../utils/soundManager';
+import { getDinoAssetsByAreaId } from '../constants/dinoAssets';
+
+const PIXELATED_CLASS = 'object-contain w-full h-full [image-rendering:pixelated]';
 
 interface HatchingAnimationProps {
   areaImage?: string;
   areaName: string;
+  areaId?: string;
   onComplete: () => void;
 }
 
 type HatchingStep = 'premonition' | 'hatching' | 'celebration' | 'complete';
 
-const HatchingAnimation: React.FC<HatchingAnimationProps> = ({ areaImage, areaName, onComplete }) => {
+const HatchingAnimation: React.FC<HatchingAnimationProps> = ({ areaImage, areaName, areaId, onComplete }) => {
+  const assets = areaId ? getDinoAssetsByAreaId(areaId) : undefined;
   const [step, setStep] = useState<HatchingStep>('premonition');
 
   const handleNext = () => {
@@ -48,6 +53,18 @@ const HatchingAnimation: React.FC<HatchingAnimationProps> = ({ areaImage, areaNa
             <div className="text-lg text-gray-600 mb-6">
               {areaName}のたまごが何かを感じているようです...
             </div>
+            {assets?.egg1 && (
+              <div className="flex justify-center mb-4">
+                <img
+                  src={(function () {
+                    if (import.meta.env.DEV) console.log('[HatchingAnimation] premonition img src', assets!.egg1);
+                    return assets!.egg1;
+                  })()}
+                  alt="たまご"
+                  className={`w-24 h-24 ${PIXELATED_CLASS}`}
+                />
+              </div>
+            )}
             <motion.div
               animate={{ x: [0, 5, 0] }}
               transition={{ duration: 1, repeat: Infinity }}
@@ -65,7 +82,6 @@ const HatchingAnimation: React.FC<HatchingAnimationProps> = ({ areaImage, areaNa
             animate={{ opacity: 1 }}
             className="relative w-full h-full flex items-center justify-center"
           >
-            {/* たまごの震えアニメーション */}
             <motion.div
               animate={{
                 rotate: [0, -5, 5, -5, 5, 0],
@@ -74,41 +90,51 @@ const HatchingAnimation: React.FC<HatchingAnimationProps> = ({ areaImage, areaNa
               transition={{ duration: 0.5, repeat: 3 }}
               className="w-48 h-48 relative"
             >
-              <div className="w-full h-full bg-gradient-to-b from-amber-100 to-amber-200 rounded-full border-4 border-amber-300 relative overflow-hidden">
-                {/* ヒビのアニメーション */}
-                <motion.svg
-                  className="absolute inset-0 w-full h-full"
-                  viewBox="0 0 200 200"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  {[...Array(8)].map((_, i) => {
-                    const angle = (i * 45) * (Math.PI / 180);
-                    const x1 = 100 + Math.cos(angle) * 30;
-                    const y1 = 100 + Math.sin(angle) * 30;
-                    const x2 = 100 + Math.cos(angle) * 80;
-                    const y2 = 100 + Math.sin(angle) * 80;
-                    return (
-                      <motion.line
-                        key={i}
-                        x1={x1}
-                        y1={y1}
-                        x2={x2}
-                        y2={y2}
-                        stroke="#8b5a3c"
-                        strokeWidth="3"
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
-                      />
-                    );
-                  })}
-                </motion.svg>
-              </div>
+              {assets ? (
+                <img
+                  src={(function () {
+                    const src = assets.egg4 ?? assets.egg3;
+                    if (import.meta.env.DEV) console.log('[HatchingAnimation] hatching img src', src);
+                    return src;
+                  })()}
+                  alt="たまご"
+                  className={PIXELATED_CLASS}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-b from-amber-100 to-amber-200 rounded-full border-4 border-amber-300 relative overflow-hidden">
+                  <motion.svg
+                    className="absolute inset-0 w-full h-full"
+                    viewBox="0 0 200 200"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    {[...Array(8)].map((_, i) => {
+                      const angle = (i * 45) * (Math.PI / 180);
+                      const x1 = 100 + Math.cos(angle) * 30;
+                      const y1 = 100 + Math.sin(angle) * 30;
+                      const x2 = 100 + Math.cos(angle) * 80;
+                      const y2 = 100 + Math.sin(angle) * 80;
+                      return (
+                        <motion.line
+                          key={i}
+                          x1={x1}
+                          y1={y1}
+                          x2={x2}
+                          y2={y2}
+                          stroke="#8b5a3c"
+                          strokeWidth="3"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
+                        />
+                      );
+                    })}
+                  </motion.svg>
+                </div>
+              )}
             </motion.div>
 
-            {/* 光のエフェクト */}
             <motion.div
               className="absolute inset-0 bg-white"
               initial={{ opacity: 0 }}
@@ -155,7 +181,16 @@ const HatchingAnimation: React.FC<HatchingAnimationProps> = ({ areaImage, areaNa
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
               className="w-48 h-48 mb-8 relative z-10"
             >
-              {areaImage ? (
+              {assets?.baby ? (
+                <img
+                  src={(function () {
+                    if (import.meta.env.DEV) console.log('[HatchingAnimation] celebration img src', assets!.baby);
+                    return assets!.baby;
+                  })()}
+                  alt="恐竜"
+                  className={PIXELATED_CLASS}
+                />
+              ) : areaImage ? (
                 <img src={areaImage} alt="恐竜" className="w-full h-full object-contain" />
               ) : (
                 <div className="w-full h-full bg-yellow-400 rounded-full flex items-center justify-center text-8xl">

@@ -36,6 +36,7 @@ function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenP
     const totalTime = stageConfig.totalTime;
     const problemStartTimeRef = useRef<number>(0); 
     const [isTimerActive, setIsTimerActive] = useState(false);
+    const [comboCount, setComboCount] = useState(0);
     const elapsedTimeWhenPausedRef = useRef<number>(0); // 一時停止時点の経過時間を保持 
 
     const isGameOver = playerHP <= 0;
@@ -57,6 +58,7 @@ function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenP
         const damageAmount = stageConfig.damageOnMiss; 
         setPlayerHP((prev) => Math.max(0, prev - damageAmount));
         showDamage(damageAmount, 'player');
+        setComboCount(0);
         if (currentProblem) { 
             setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: false, timeTaken: totalTime, userInput: currentAnswer }]);
         }
@@ -114,7 +116,11 @@ function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenP
         const timeTaken = Date.now() - problemStartTimeRef.current;
         setFeedbackPos({ x: e.clientX, y: e.clientY });
 
-        if (currentAnswer === currentProblem.answer.toString()) { 
+        // 筆算・横書きとも表示どおりの文字列で判定（"64" なら 64）
+        const userAnswer = Number(currentAnswer);
+        if (Number.isNaN(userAnswer)) return;
+
+        if (userAnswer === currentProblem.answer) { 
             playCorrect();
             setIsTimerActive(false);
             setFeedback("correct");
@@ -122,12 +128,14 @@ function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenP
             const timeRatio = Math.max(0, (totalTime - timeTaken) / totalTime);
             const minDamage = 50;
             const maxDamage = 250;
-            const calculatedDamage = minDamage + (maxDamage - minDamage) * timeRatio;
-            const totalDamage = Math.round(calculatedDamage);
+            const calculatedBaseDamage = minDamage + (maxDamage - minDamage) * timeRatio;
+            const comboMultiplier = Math.min(2.0, 1.0 + comboCount * 0.1);
+            const totalDamage = Math.round(calculatedBaseDamage * comboMultiplier);
             const nextEnemyHP = enemyHP - totalDamage;
             setEnemyHP(Math.max(0, nextEnemyHP));
             showDamage(totalDamage, 'enemy');
             setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: true, timeTaken, userInput: currentAnswer }]);
+            setComboCount((prev) => prev + 1);
             if (nextEnemyHP > 0) {
                 setCurrentProblem(null);
             }
@@ -139,6 +147,7 @@ function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenP
             const damageAmount = stageConfig.damageOnMiss;
             setPlayerHP((prev) => Math.max(0, prev - damageAmount));
             showDamage(damageAmount, 'player');
+            setComboCount(0);
             setBattleLog((prev) => [...prev, { problem: currentProblem, isCorrect: false, timeTaken, userInput: currentAnswer }]);
             setCurrentAnswer("");
             setTimeout(() => { setFeedback(null) }, 1000);
@@ -149,14 +158,33 @@ function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenP
     const handleInput = (key: string) => {
         if (showGiveUpConfirm) return;
         playClick();
+
+        const isVertical = stageConfig.displayMode === 'vertical';
+
         if (key === "⌫") {
-            setCurrentAnswer((prev) => prev.slice(0, -1));
-        } else if (currentProblem) {
-            const maxAnswerLength = currentProblem.answer.toString().length + 1;
-            if (currentAnswer.length < maxAnswerLength) {
-                setCurrentAnswer((prev) => prev + key);
-            }
+            setCurrentAnswer((prev) => {
+                if (prev === "") return prev;
+                if (isVertical) {
+                    // 筆算: 一番左（直近に入力した高い方の桁）を消す
+                    return prev.slice(1);
+                }
+                return prev.slice(0, -1);
+            });
+            return;
         }
+
+        if (!currentProblem) return;
+
+        const maxAnswerLength = currentProblem.answer.toString().length;
+
+        setCurrentAnswer((prev) => {
+            if (prev.length >= maxAnswerLength) return prev;
+            if (isVertical) {
+                // 筆算: 一の位から入力し十の位が左に追加 → 「4」の次に「6」で "64"
+                return key + prev;
+            }
+            return prev + key;
+        });
     };
 
     const handleGiveUpClick = () => {
@@ -276,6 +304,10 @@ function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenP
                 </div>
             </div>
 
+            <div className="mt-2 text-lg font-bold text-yellow-200 drop-shadow-md">
+                コンボ: {comboCount}
+            </div>
+
             <div className={`relative w-56 h-56 md:w-64 md:h-64 flex items-center justify-center`}>
                 <div className={`transition-transform duration-300 ${shakeTarget === 'enemy' ? 'animate-shake' : ''}`}>
                     <img 
@@ -301,12 +333,27 @@ function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenP
                         style={{ cursor: currentProblem ? 'pointer' : 'default' }}
                     >
                         {currentProblem && (
-                            <span 
-                                className="text-4xl md:text-5xl font-bold text-gray-900 text-center"
-                                style={{ textShadow: '2px 0 #FFF, -2px 0 #FFF, 0 2px #FFF, 0 -2px #FFF, 1px 1px #FFF, -1px -1px #FFF, 1px -1px #FFF, -1px 1px #FFF' }}
-                            >
-                                {currentProblem.text}
-                            </span>
+                            stageConfig.displayMode === 'vertical' ? (
+                                <div className="flex flex-col items-center justify-center w-full">
+                                  <div className="inline-flex flex-col items-end font-mono text-3xl md:text-5xl font-bold text-gray-900 leading-tight">
+                                    <div className="tabular-nums">
+                                      {currentProblem.operand1}
+                                    </div>
+                                    <div className="tabular-nums flex items-center">
+                                      <span className="mr-4">{currentProblem.operator}</span>
+                                      {currentProblem.operand2}
+                                    </div>
+                                    <div className="w-full border-t-4 border-gray-800 mt-1" />
+                                  </div>
+                                </div>
+                            ) : (
+                                <span 
+                                    className="text-4xl md:text-5xl font-bold text-gray-900 text-center"
+                                    style={{ textShadow: '2px 0 #FFF, -2px 0 #FFF, 0 2px #FFF, 0 -2px #FFF, 1px 1px #FFF, -1px -1px #FFF, 1px -1px #FFF, -1px 1px #FFF' }}
+                                >
+                                    {currentProblem.text}
+                                </span>
+                            )
                         )}
                     </div>
                 </div>
@@ -322,8 +369,40 @@ function BattleScreen({ stageConfig, onBattleComplete, onGiveUp }: BattleScreenP
             )}
 
             <div className={`w-full max-w-xs ${shakeTarget === 'player' ? 'animate-shake' : ''}`}>
-                <div className="text-4xl md:text-5xl font-mono tracking-widest mb-2 p-2 bg-white rounded-lg shadow-inner min-h-[4rem] text-center">
-                    {currentAnswer || <span className="text-gray-400">?</span>}
+                <div className="mb-2 p-2 bg-white rounded-lg shadow-inner min-h-[4rem] flex items-center justify-center">
+                    {stageConfig.displayMode === 'vertical' && currentProblem ? (
+                        (() => {
+                            const len = currentProblem.answer.toString().length;
+                            const nextBoxIndex = currentAnswer.length < len ? len - 1 - currentAnswer.length : -1;
+                            return (
+                                <div className="flex flex-row gap-1 justify-center items-center">
+                                    {Array.from({ length: len }).map((_, i) => {
+                                        const digitIndex = currentAnswer.length - len + i;
+                                        const digit = (digitIndex >= 0 && digitIndex < currentAnswer.length)
+                                            ? currentAnswer[digitIndex]
+                                            : '';
+                                        const isNext = i === nextBoxIndex;
+                                        return (
+                                            <div
+                                                key={i}
+                                                className={`
+                                                    w-12 h-16 flex items-center justify-center
+                                                    border-2 rounded-md font-mono text-3xl font-bold
+                                                    ${isNext ? 'border-blue-500 animate-pulse bg-blue-50' : 'border-gray-300 bg-gray-50'}
+                                                `}
+                                            >
+                                                {digit}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()
+                    ) : currentAnswer ? (
+                        <span className="text-4xl md:text-5xl font-mono tracking-widest">{currentAnswer}</span>
+                    ) : (
+                        <span className="text-4xl md:text-5xl font-mono text-gray-400">?</span>
+                    )}
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                     {["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0"].map((key) => (
