@@ -21,6 +21,7 @@ export const areas: AreaConfig[] = [
         totalTime: 10000,
         calculationSettings: CalculationPresets.additionUpTo5,
         damageOnMiss: 10,
+        difficulty: 1,
       },
       {
         id: 2,
@@ -31,6 +32,7 @@ export const areas: AreaConfig[] = [
         totalTime: 8000,
         calculationSettings: CalculationPresets.additionUpTo10,
         damageOnMiss: 10,
+        difficulty: 1,
       },
       {
         id: 3,
@@ -41,6 +43,7 @@ export const areas: AreaConfig[] = [
         totalTime: 6000,
         calculationSettings: CalculationPresets.additionUpTo10,
         damageOnMiss: 10,
+        difficulty: 2,
       },
       {
         id: 4,
@@ -51,6 +54,7 @@ export const areas: AreaConfig[] = [
         totalTime: 12000,
         calculationSettings: CalculationPresets.threeNumbersUpTo20,
         damageOnMiss: 15,
+        difficulty: 2,
       },
       {
         id: 5,
@@ -61,6 +65,7 @@ export const areas: AreaConfig[] = [
         totalTime: 5000,
         calculationSettings: CalculationPresets.additionSubtractionUpTo10WithCarry,
         damageOnMiss: 20,
+        difficulty: 3,
       },
     ],
   },
@@ -79,6 +84,7 @@ export const areas: AreaConfig[] = [
         totalTime: 10000,
         calculationSettings: CalculationPresets.subtractionUpTo10,
         damageOnMiss: 15,
+        difficulty: 1,
       },
       {
         id: 7,
@@ -89,6 +95,7 @@ export const areas: AreaConfig[] = [
         totalTime: 8000,
         calculationSettings: CalculationPresets.subtractionWithBorrowUpTo20,
         damageOnMiss: 15,
+        difficulty: 1,
       },
       {
         id: 8,
@@ -99,6 +106,7 @@ export const areas: AreaConfig[] = [
         totalTime: 6000,
         calculationSettings: CalculationPresets.subtractionUpTo10,
         damageOnMiss: 20,
+        difficulty: 2,
       },
       {
         id: 9,
@@ -109,6 +117,7 @@ export const areas: AreaConfig[] = [
         totalTime: 10000,
         calculationSettings: CalculationPresets.additionSubtractionUpTo10,
         damageOnMiss: 20,
+        difficulty: 2,
       },
       {
         id: 10,
@@ -119,6 +128,7 @@ export const areas: AreaConfig[] = [
         totalTime: 5000,
         calculationSettings: CalculationPresets.subtractionUpTo10,
         damageOnMiss: 30,
+        difficulty: 3,
       },
     ],
   },
@@ -145,6 +155,7 @@ export const areas: AreaConfig[] = [
           mustCarry: false,
         },
         damageOnMiss: 20,
+        difficulty: 2,
       },
       {
         id: 12,
@@ -163,6 +174,7 @@ export const areas: AreaConfig[] = [
           mustCarry: true,
         },
         damageOnMiss: 20,
+        difficulty: 2,
       },
       {
         id: 13,
@@ -182,6 +194,7 @@ export const areas: AreaConfig[] = [
           mustCarry: false,
         },
         damageOnMiss: 25,
+        difficulty: 3,
       },
       {
         id: 14,
@@ -196,11 +209,12 @@ export const areas: AreaConfig[] = [
           allowedOperators: ['+'],
           operand1Min: 10,
           operand2Min: 10,
-          minAnswer: 50,
-          maxAnswer: 99,
-          mustCarry: false,
+        minAnswer: 50,
+        maxAnswer: 99,
+        mustCarry: false,
         },
         damageOnMiss: 25,
+        difficulty: 3,
       },
       {
         id: 15,
@@ -220,6 +234,7 @@ export const areas: AreaConfig[] = [
           mustCarry: true,
         },
         damageOnMiss: 30,
+        difficulty: 3,
       },
       {
         id: 16,
@@ -234,11 +249,12 @@ export const areas: AreaConfig[] = [
           allowedOperators: ['+'],
           operand1Min: 10,
           operand2Min: 10,
-          minAnswer: 80,
-          maxAnswer: 100,
-          mustCarry: true,
+        minAnswer: 80,
+        maxAnswer: 100,
+        mustCarry: true,
         },
         damageOnMiss: 35,
+        difficulty: 4,
       },
       {
         id: 17,
@@ -253,10 +269,11 @@ export const areas: AreaConfig[] = [
           allowedOperators: ['+'],
           operand1Min: 10,
           operand2Min: 10,
-          minAnswer: 10,
-          maxAnswer: 100,
+        minAnswer: 10,
+        maxAnswer: 100,
         },
         damageOnMiss: 40,
+        difficulty: 4,
       },
     ],
   },
@@ -283,6 +300,7 @@ export const areas: AreaConfig[] = [
           mustCarry: false,
         },
         damageOnMiss: 20,
+        difficulty: 2,
       },
       {
         id: 19,
@@ -301,6 +319,7 @@ export const areas: AreaConfig[] = [
           mustCarry: true,
         },
         damageOnMiss: 20,
+        difficulty: 2,
       },
       {
         id: 20,
@@ -315,11 +334,12 @@ export const areas: AreaConfig[] = [
           allowedOperators: ['-'],
           operand1Min: 10,
           operand2Min: 10,
-          minAnswer: 1,
-          maxAnswer: 30,
-          mustCarry: false,
+        minAnswer: 1,
+        maxAnswer: 30,
+        mustCarry: false,
         },
         damageOnMiss: 20,
+        difficulty: 3,
       },
       {
         id: 21,
@@ -334,11 +354,12 @@ export const areas: AreaConfig[] = [
           allowedOperators: ['-'],
           operand1Min: 10,
           operand2Min: 10,
-          minAnswer: 30,
-          maxAnswer: 70,
-          mustCarry: false,
+        minAnswer: 30,
+        maxAnswer: 70,
+        mustCarry: false,
         },
         damageOnMiss: 25,
+        difficulty: 3,
       },
       {
         id: 22,
@@ -353,11 +374,12 @@ export const areas: AreaConfig[] = [
           allowedOperators: ['-'],
           operand1Min: 10,
           operand2Min: 10,
-          minAnswer: 10,
-          maxAnswer: 50,
-          mustCarry: true,
+        minAnswer: 10,
+        maxAnswer: 50,
+        mustCarry: true,
         },
         damageOnMiss: 30,
+        difficulty: 3,
       },
       {
         id: 23,
@@ -372,11 +394,12 @@ export const areas: AreaConfig[] = [
           allowedOperators: ['-'],
           operand1Min: 10,
           operand2Min: 10,
-          minAnswer: 1,
-          maxAnswer: 80,
-          mustCarry: true,
+        minAnswer: 1,
+        maxAnswer: 80,
+        mustCarry: true,
         },
         damageOnMiss: 35,
+        difficulty: 4,
       },
       {
         id: 24,
@@ -391,10 +414,11 @@ export const areas: AreaConfig[] = [
           allowedOperators: ['-'],
           operand1Min: 10,
           operand2Min: 10,
-          minAnswer: 1,
-          maxAnswer: 90,
+        minAnswer: 1,
+        maxAnswer: 90,
         },
         damageOnMiss: 40,
+        difficulty: 4,
       },
     ],
   },
@@ -421,6 +445,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 9,
         },
         damageOnMiss: 20,
+        difficulty: 2,
       },
       {
         id: 26,
@@ -439,6 +464,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 18,
         },
         damageOnMiss: 20,
+        difficulty: 2,
       },
       {
         id: 27,
@@ -457,6 +483,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 27,
         },
         damageOnMiss: 20,
+        difficulty: 2,
       },
       {
         id: 28,
@@ -475,6 +502,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 36,
         },
         damageOnMiss: 25,
+        difficulty: 3,
       },
       {
         id: 29,
@@ -493,6 +521,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 45,
         },
         damageOnMiss: 25,
+        difficulty: 3,
       },
       {
         id: 30,
@@ -511,6 +540,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 54,
         },
         damageOnMiss: 30,
+        difficulty: 3,
       },
       {
         id: 31,
@@ -529,6 +559,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 63,
         },
         damageOnMiss: 30,
+        difficulty: 4,
       },
       {
         id: 32,
@@ -547,6 +578,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 72,
         },
         damageOnMiss: 30,
+        difficulty: 4,
       },
       {
         id: 33,
@@ -565,6 +597,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 81,
         },
         damageOnMiss: 30,
+        difficulty: 4,
       },
       {
         id: 34,
@@ -582,6 +615,7 @@ export const areas: AreaConfig[] = [
           maxAnswer: 81,
         },
         damageOnMiss: 40,
+        difficulty: 5,
       },
     ],
   },
@@ -603,4 +637,12 @@ export function getStageById(stageId: number): import('../types/game').StageConf
  */
 export function getAreaById(areaId: string): AreaConfig | undefined {
   return areas.find(a => a.id === areaId);
+}
+
+/**
+ * ステージIDから所属エリアIDを取得するヘルパー関数
+ */
+export function getAreaIdByStageId(stageId: number): string | undefined {
+  const area = areas.find(a => a.stages.some(s => s.id === stageId));
+  return area?.id;
 }

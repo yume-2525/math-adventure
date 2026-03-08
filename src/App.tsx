@@ -7,6 +7,8 @@ import ResultScreen from './components/ResultScreen';
 import type { StageConfig, BattleLogEntry, ScoreData } from './types/game';
 import { areas } from './constants/areas';
 import { loadScores, saveScore } from './utils/scoreStorage';
+import { getTodayMissionStageIds, markMissionStageCompleted, isTodayMissionAllCleared, completeDailyMission } from './utils/dailyMission';
+import { loadProgress } from './utils/progressStorage';
 import { 
   playGameOver, 
   playClick, 
@@ -110,7 +112,14 @@ function App() {
     else if (finalScore >= 5000) finalRank = 'B';
     else if (finalScore >= 2500) finalRank = 'C';
 
-     saveScore(selectedStage.id, finalScore, finalRank);
+    saveScore(selectedStage.id, finalScore, finalRank);
+    if (isClear) {
+      const todayIds = getTodayMissionStageIds();
+      if (todayIds?.includes(selectedStage.id)) {
+        markMissionStageCompleted(selectedStage.id);
+        if (isTodayMissionAllCleared()) completeDailyMission();
+      }
+    }
     setBestScores(loadScores());
     setLastBattleLog(log);
     setWasGameClear(isClear);
@@ -162,6 +171,8 @@ function App() {
             onStageSelect={handleStageSelect}
             onBackToAreaSelect={handleBackToAreaSelect}
             bestScores={bestScores}
+            todayMissionStageIds={getTodayMissionStageIds() ?? []}
+            completedMissionStageIds={loadProgress().dailyMissionProgress.completedStageIds}
           />
         );
       }

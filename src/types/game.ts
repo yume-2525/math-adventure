@@ -64,6 +64,8 @@ export interface StageConfig {
   calculationSettings: CalculationSettings;
   /** ミス時のダメージ量 */
   damageOnMiss: number;
+  /** デイリーミッション用の難易度（1〜5、未指定時は1） */
+  difficulty?: number;
 }
 
 /**
